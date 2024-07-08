@@ -26,6 +26,13 @@ In case of error, you might need to launch before :
 autoreconf -f - i
 ```
 
+# Command line sample 
+
+The below command will generate the skyvase.dat scene : 
+```
+/usr/local/dkb-trace/bin/dkb-trace  +i/usr/local/dkb-trace/share/dkb-trace/dat/skyvase.dat +l/usr/local/dkb-trace/share/dkb-trace/dat +o$HOME/skyvase.tga +w320 +h240 +ft +a 
+```
+
 # Features
 
 Below are the screenshots of a version for NAS Synology :
