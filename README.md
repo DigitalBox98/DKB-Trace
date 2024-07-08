@@ -41,8 +41,12 @@ Select sample scenes : <br>
 Highlight errors in scene script : <br>
 <img width="695" alt="dkb7" src="https://github.com/DigitalBox98/DKB-Trace/assets/57635141/de359175-ab59-425a-85a8-22f814786926">
 
-Online documentation : <br>
+Rendering progress: <br>
 <img width="706" alt="dkb8" src="https://github.com/DigitalBox98/DKB-Trace/assets/57635141/6c0fbbae-3414-4976-a6d1-0e48605d624b">
+
+Online documentation : <br>
+<img width="663" alt="dkb10" src="https://github.com/DigitalBox98/DKB-Trace/assets/57635141/a2758524-34ef-4414-9f4f-c29ccc1c2a54">
+
 
 
 
