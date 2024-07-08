@@ -1,0 +1,111 @@
+
+	 This program generates user definable stars as DECLARED
+    "COMPOSITES" for DKB (currently 2.05AB) Ray-Tracing program in .DAT
+    format.  Actually, it should have been for "OBJECTS" but I didn't want
+    to hold up sending it out any longer.  A two dimensional outline is
+    drawn on the screen as the .DAT is generated.
+
+	 See also SHADE (which generates pleated lamp shades) and DIAMOND
+    (which generates a cut gem, plus creates the rest of the .DAT file:
+    view, light, floor).  With all of these programs, just play around with
+    the variables to generate new shapes.  For example, generating many
+    long points on the star looks like the spokes of a bicycle wheel.  Many
+    short points on a large radius star looks like a circular saw blade.
+    Use your imagination and please post any ideas or neat works for the
+    world to enjoy.
+
+    I can be reached at YOU CAN CALL ME RAY RBBS (708) 358-5611.
+
+
+		    "Its my world and you're welcome to it".
+
+
+						Ken Koehler (2-12-91)
+
+
+	 Enclosed are three files:
+
+	    STAR.BAS	Quickbasic
+	    STAR.EXE	MS-DOS executable
+	    STAR.DOC	This file
+	    STAR000.TGA First frame of spinning star animation
+
+
+	 The program will ask the following questions:
+
+					 {Example values, but not used below}
+	    Number of points:			 8
+	    Point Top	 from center:		 20
+	    Point Bottom from center:		 5
+	    Point Joint  from center:		 10
+	    Thickness	 from center:		 5
+
+	 The following diagrams are a visual attempt to describe what each
+    question means.
+
+     ********** XY View **********	    ********** XY View **********
+     * ^			 *	    * ^ 			*
+     * |	 /\		 *	    * | 	/\	     ^	*
+     * Y	.  .		 *	    * Y        .  .	     |	*
+     *	       .    .		 *	    *	      .    .	     |	*
+     * X->    .      .		 *	    * X->    .	    .	     |	*
+     *	    .  .    .  .	 *	    *	   .  .    .  .      |	*
+     *	  .	.  .	 .	 *	    *	 .     .  .	.    |	*
+     *	<	 ..	   >	 *	    *  <	..	  >  -	*
+     *	  .	.  .	 .	 *	    *	 .     .  .	.	*
+     *	    .  .    .  .	 *	    *	    .  .    .  .	*
+     *	      .      .		 *	    *	      .      .		*
+     *	       .    .		 *	    *	      .    .		*
+     *		.  .		 *	    *	       .  .		*
+     *		 \/		 *	    *		\/		*
+     *				 *	    *				*
+     *		  |-------->	 *	    *				*
+     *				 *	    *				*
+     *****************************	    *****************************
+     * Number of points: 4	 *	    * Point Top    from center: *
+     *****************************	    *****************************
+
+     ********** XY View **********	    ********** XY View **********
+     * ^			 *	    * ^ 			*
+     * |			 *	    * | 	/\		*
+     * Y			 *	    * Y        .  .		*
+     *		 .		 *	    *	      .    .		*
+     * X->	. .		 *	    * X->    .	    +		*
+     *	       .   .		 *	    *	   .  .    /  . 	*
+     *	      .  .  .		 *	    *	 .     .  /	.	*
+     *	      .     .	^	 *	    *  <	./	  >	*
+     *	     .	     .	-	 *	    *	 .     .  .	.	*
+     *	      .     .		 *	    *	   .  .    .  . 	*
+     *		 .		 *	    *	     .	    .		*
+     *				 *	    *	      .    .		*
+     *				 *	    *	       .  .		*
+     *				 *	    *		\/		*
+     *				 *	    *				*
+     *				 *	    *				*
+     *				 *	    *				*
+     *****************************	    *****************************
+     * Point Bottom from center: *	    * Point Joint  from center: *
+     *****************************	    *****************************
+
+     ********** ZY View **********	    ********** ZX View **********
+     *	 ^			 *	    *'Looking down on top point'*
+     *	 |	 /\		 *	    *				*
+     *	 Y	.  .		 *	    *	^			*
+     *	       .    .		 *	    *	|			*
+     * <-Z    .      .		 *	    *	X	/|\		*
+     *	      |      |		 *	    *	       / | \		*
+     *	      |      |		 *	    * <-Z     /__|__\		*
+     *	      |      |		 *	    *	      \  |  /		*
+     *	      |      |		 *	    *	       \ | /		*
+     *	      |      |		 *	    *		\|/		*
+     *	      .      .		 *	    *				*
+     *	       .    .		 *	    *				*
+     *		.  .		 *	    *				*
+     *		 \/		 *	    *				*
+     *				 *	    *				*
+     *	      <--|		 *	    *				*
+     *				 *	    *				*
+     *****************************	    *****************************
+     * Thickness    from center: *	    *				*
+     *****************************	    *****************************
+

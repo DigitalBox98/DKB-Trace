@@ -1,0 +1,37 @@
+catdump                                                               catdump
+
+NAME
+        catdump
+
+SYNOPSIS
+        catdump <inputfile-1> <inputfile-2> [<inputfile-3> ...] <outputfile>
+
+DESCRIPTION
+        This program concatenates several (possibly partial) DKB/QRT dump format
+        picture files to standard output as one complete file. Pictures may
+        overlap and they need not fill the whole picture.
+
+        Priority of input files increases from left to right on command line,
+        so if there are two overlapping pictures, the first file will be
+        overlapped by the second one.
+
+        If there are lines between two input files which are not covered by
+        any input file, they will be filled with zero (black).
+
+        If you want to replace some lines in the complete picture by
+        a partial picture, put the complete picture file before partial one
+        on command-line.
+
+        If you want to concatenate two or more partial files, you will get
+        the best results by placing files in reverse order on command line
+        (first lower then upper).
+
+OUTPUT 
+        Concatenated DKB/QRT dump format file in standard output.
+
+Comments and bug reports to:
+
+        Ville Saari                     vsaari@niksula.hut.fi
+        PL 10
+        00210 Helsinki
+        FINLAND

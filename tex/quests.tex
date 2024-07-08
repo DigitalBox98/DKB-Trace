@@ -1,0 +1,260 @@
+\chapter{Common Questions and Answers}
+
+\index{questions}
+I often get asked the same questions again and again.  I usually take this to
+mean that the documentation is not complete or not sufficiently clear.  In
+order to correct this problem, I've added some sections to the document
+describing the features in more detail.  I've also collected some of the more
+popular questions and answered them here.
+
+\begin{itemize}
+\item[Q:] Will you be implementing radiosity\index{radiosity}?
+\item[A:] I don't expect so.  The techniques for radiosity are quite involved
+and time consuming (although they are getting faster).  The amount of
+effort required to implement radiosity is beyond my current plans.
+
+\item[Q:] Do you intend make DKBTrace RenderMan\index{RenderMan} compatible?
+\item[A:] Probably not.  RenderMan is a specification that requires much more
+functionality than DKBTrace currently provides.  The camera models,
+modelling primitives, and shading language of RenderMan are all very
+involved and difficult to implement.  As well, RenderMan is not well
+suited to a raytracing approach.  Don't expect to see DKBTrace
+RenderMan compatible in the near (or distant) future.  Note, though
+that several of the DKBTrace textures are similar to those obtainable
+by RenderMan.
+
+\item[Q:] I\index{light sources!position restriction} defined a light
+source but the shadows and lighting are all wrong.
+\item[A:] Light sources must be defined at the origin (0,0,0) and translated to
+the proper place.  The reason for this is to allow the diffuse lighting
+calculations to quickly determine where the center of the light source
+is.  It's a very difficult task to calculate the center of an object
+(in general), so I simply take the place that the object was translated
+to as the center of the light source.
+
+\item[Q:] I keep running out of memory\index{memory usage}.  What can I do?
+\item[A:] Buy more memory.  But seriously, you can decrease the memory
+requirements for any given picture in several ways:
+\begin{enumerate}
+\item {\tt DECLARE}\keyindex{DECLARE} texture constants and use them
+(textures are shared).
+\item Don't modify the texture that you are sharing.  On the first
+modify, the texture is copied and (therefore) takes up more space.
+\item Put the object transformations before the texture structure.  This
+prevents the texture from being transformed (and hence, copied.
+This may not always be desirable, though).
+\item Use {\tt UNION}s\keyindex{UNION} instead of
+{\tt COMPOSITE}\keyindex{COMPOSITE} objects to put
+pieces together. Previous versions of the raytracer didn't allow
+this because the texture applied to the entire object.  Version 2.10
+and up allow you to change the texture on a per-shape basis.
+\item Use fewer or smaller image maps.
+\item Use GIF\index{GIF} or IFF\index{IFF} (non-HAM) images for image
+maps.  These are stored internally as 8 bits per pixel with a colour
+table instead of 24 bits per pixel.
+\end{enumerate}
+
+\item[Q:] I get a floating point exception error\index{errors} on
+certain pictures. What's wrong?
+\item[A:] Oh no! Not another one!  The raytracer (obviously) performs
+{\em many} floating point operations when tracing a scene.  If I had to check
+each one for overflow or underflow, the program would be much longer
+and I would be much closer to going insane trying to locate all
+possible cases.  If you get this problem, I'd suggest that you
+first look through your data file to make sure you're not doing
+something stupid like:
+\begin{itemize}
+\item Scaling something by 0.0 in {\em any} dimension;
+\item Making the {\tt LOOK_AT}\keyindex{LOOK_AT} point the same as
+the {\tt LOCATION}\keyindex{LOCATION};
+\item Defining triangles\index{triangles!math errors in} with two
+points the same (or nearly the same);
+\item Using the zero vector for normals.
+\end{itemize}
+If it doesn't seem to be one of these problems, let me know, but there
+may not be a lot I can do because overflows can occur almost anywhere.
+Sorry.  If you do have such troubles, you can try to isolate the
+problem in the input data file by commenting out objects or groups
+of objects until you narrow it down to a particular section that
+fails.  Then try commenting out the individual characteristics of the
+offending object.
+
+\item[Q:] No matter how much I scale a Cylinder, I can't make it fit on the
+screen.  How big is it and how much do I have to
+scale\index{scaling qaudrics}\index{quadrics!scaling} it?
+\item[A:] Cylinders (like most quadrics) are infinitely long.  No matter how
+much you scale them, they still won't fit on the screen.  To make a
+capped cylinder, you must use CSG:
+\begin{verbatim}
+     INTERSECTION
+         QUADRIC Cylinder_Y END_QUADRIC
+         PLANE <0.0 1.0 0.0> 1.0 END_PLANE
+         PLANE <0.0 -1.0 0.0> 1.0 END_PLANE
+     END_INTERSECTION
+\end{verbatim}
+Cylinders {\em can} be scaled in cross-section, the two vectors
+{\em not} in the name of the cylinder (X and Z, in our example above) can
+be scaled to control the width and thickness of the cylinder.  Scaling
+the Y value (which is normally infinite) is meaningless, unless you
+have ``capped'' it as above, then scaling the entire
+{\tt INTERSECTION}\keyindex{INTERSECTION} object in the Y dimension
+will control the height of the cylinder.
+
+\item[Q:] Why don't you define a primitive\index{cube}\index{box} for a
+6-sided box?
+\item[A:] Because you can do it so easily with
+CSG:\index{constructive solid geometry!definition of box}
+\begin{verbatim}
+     INTERSECTION
+        PLANE < 1.0  0.0  0.0> 1.0 END_PLANE
+        PLANE <-1.0  0.0  0.0> 1.0 END_PLANE
+        PLANE < 0.0  1.0  0.0> 1.0 END_PLANE
+        PLANE < 0.0 -1.0  0.0> 1.0 END_PLANE
+        PLANE < 0.0  0.0  1.0> 1.0 END_PLANE
+        PLANE < 0.0  0.0 -1.0> 1.0 END_PLANE
+     END_INTERSECTION
+\end{verbatim}
+
+\item[Q:] Are planes 2D objects or are they 3D but infinitely thin?
+\item[A:] Neither.  Planes are 3D objects that divide the world into two
+half-spaces.\index{plane!inside and outside}
+The space in the direction of the surface normal is considered outside
+and the other space is inside (see Figure \ref{plane}).
+\begin{figure}[htbp]
+\begin{centering}
+\input{plane}
+\caption{The ``sides'' of a plane}
+\label{plane}
+\end{centering}
+\end{figure}
+In other words, planes are 3D objects that are infinitely thick.
+
+\item[Q:] Can DKBTrace render soft shadows\index{shadows}?
+\item[A:] No.  This would require a lot more programming work and a lot more
+calculation time.  You can place an unturbulated {\tt WOOD}\keyindex{WOOD}
+texture ``filter'' over a lamp in a can, and use a colour map going from dark
+({\tt ALPHA}\keyindex{ALPHA} 0.0) around the edges to clear
+({\tt ALPHA} 1.0) at the center, and get a soft-shadow-like effect for
+a ``spotlight''.
+
+\item[Q:] I'd like to go through the program and hand-optimize the
+assembly code in places to make it faster\index{processing speed}.
+What should I optimize?
+\item[A:] Don't bother.  With hand optimization, you'd spend a lot of
+time to get perhaps a 5-10% speed improvement at the cost of total
+loss of portability.  If you use a better ray-surface intersection
+algorithm, you should be able to get an order of magnitude or more
+improvement.  Check out some books and papers on raytracing for useful
+techniques.  Specifically, check out ``Spatial Subdivision'' and ``Ray
+Coherence'' techniques.
+
+\item[Q:] Objects on the edges of the screen seem to be
+distorted.\index{distortion}  Why?
+\item[A:] If the {\tt DIRECTION}\keyindex{DIRECTION} vector of the
+viewpoint is not very
+long, you may get distortion at the edges of the screen.  The reason
+for this is that the viewpoint's screen is flat, as illustrated in
+Figure \ref{distort}.
+\begin{figure}[htbp]
+\begin{centering}
+\input{distort}
+\caption{Distortion with short {\tt DIRECTION} vector}
+\label{distort}
+\end{centering}
+\end{figure}
+The object labelled A appears smaller than the object labelled B,
+despite their actually being the size size.
+
+\item[Q:] How do you position\index{image mapping!positioning}
+image maps without a lot of trial and error?
+\item[A:] By default, images will be mapped onto the range 0,0 to 1,1 in the
+appropriate plane.  You should be able to translate, rotate, and
+scale the image from there.
+
+\item[Q:] What's the difference between {\tt ALPHA}\keyindex{ALPHA}
+and {\tt REFRACTION}\keyindex{REFRACTION}?
+\item[A:] The difference is a bit subtle.  Alpha is a component of
+a colour that determines how much light can pass through that colour.
+Refraction is a property of a surface that determines how much light
+can come from inside the surface.  See the section above on
+Transparency and Refraction for more details.
+
+\item[Q:] How do you calculate the surface
+normals\index{triangle!surface normals} for smooth triangles?
+\item[A:] When I implemented smooth triangles, I never really expected
+anyone to manually calculate the surface normals.  There are two ways
+of getting another program to calculate them for you:
+\begin{enumerate}
+\item Depending on the type of input to the program, you may be able to
+calculate the surface normals directly.  For example, if you have
+a program that converts B-Spline or Bezier Spline surfaces into
+DKB-format files, you can calculate the surface normals from the
+surface equations.
+\item If your original data was a polygon or triangle mesh, then it's
+not quite so simple.  You have to first calculate the surface
+normals of all the triangles.  This is easy to do -- you just use
+the vector cross-product of two sides (make sure you get the
+vectors in the right order).  Then, for every vertex, you average
+the surface normals of the triangles that meet at that vertex.
+These are the normals you use for smooth triangles.
+\end{enumerate}
+
+\item[Q:] When I render parts of a picture on different systems, the
+textures\index{textures!randomness} don't match when I put them
+together.  Why?
+\item[A:] The appearance of a texture depends on the particular random number
+generator used on your system.  DKBTrace seeds the random number
+generator with a fixed value when it starts, so the textures will be
+consistent from one run to another or from one frame to another so
+long as you use the same executables.  Once you change executables,
+you will likely change the random number generator and, hence, the
+appearance of the texture.  There is an example of a standard ANSI
+random number generator provided in {\tt IBM.C}, include it in your
+machine-specific code if you are having consistency problems.
+
+\item[Q:] What's the difference\index{colour!and {\tt TEXTURE}}
+between a {\tt COLOUR}\keyindex{COLOUR}
+declared inside a {\tt TEXTURE}\keyindex{TEXTURE} and one that's in
+a shape or an object and not in a texture?
+\item[A:] The colour in the texture specifies the colour to use for qualities
+5 and up.  The colour on the shape and object are used for faster
+rendering in qualities 4 and lower and for the colour of light sources.
+See the {\tt -q}\optindex{q} option for details on the quality parameter.
+
+\item[Q:] I created an object that passes through its bounding
+volume\index{bounding shapes}.
+At times, I can see the parts of the object that are outside the
+bounding volume.  Why does this happen?
+\item[A:] Bounding volumes are {\em not} designed to change the
+shape of the object.  They are strictly a realtime improvement
+feature.  The raytracer trusts you when you say that the object is
+enclosed by a bounding volume.  The way it uses bounding volumes is
+very simple: If the ray hits the bounding volume (or the ray's origin
+is inside the bounding volume), then the object is tested against that
+ray.  Otherwise, we ignore the object.  If the object extends beyond
+the bounding volume, anything goes.  The results are undefined.  It's
+quite possible that you could see the object outside the bounding
+volume and it's also possible that it could be invisible.  It all
+depends on the geometry of the scene.
+
+\item[Q:] Will you be writing a Graphical User Interface for DKB?
+\item[A:] No, but several other people have expressed an interest in writing
+one.  I'd like to form a mailing list to get all these people in touch
+with each other, so if you have an interest in this, please let me
+know.
+
+\item[Q:] When will the next version be available?
+\item[A:] If I told you, I'd be lying because I don't know.  I'm finding that
+releasing an official version of a program like this is a major
+effort.  It requires not only the changes to the code, but also
+changes to the documentation.  Sometimes (as with this release), I
+have to change the older data files to conform to the new syntax.
+Usually, I have to spend a lot of time re-rendering scenes that used
+to work to make sure they still do.  That combined with sending the
+files to beta testers, getting feedback, making fixes, and re-issuing
+the changes adds up to a lot of work.  I don't expect I'll be doing
+it terribly often.
+
+Bottom line -- If I say ``next week'', don't believe me.  I'm probably
+wrong.
+\end{itemize}

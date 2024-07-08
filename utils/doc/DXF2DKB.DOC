@@ -1,0 +1,80 @@
+DXF2DKB - AutoCAD DXF File to DKB 2.0+ Ray-Tracer .DAT File Translator
+
+Version 1.0 Written by Aaron A. Collins
+Version 1.01 Updated to DKB 2.10, etc. By Drew Wells
+
+This program is designed to take in AutoCAD DXF (Drawing eXchange Format)
+files and convert them to DKB scene description data files.  This is the
+first release of this program so it has some limitations.
+
+To be the most universal, it is compiled for 8086 opcodes with optional
+8087 support if it is detected.  The speed difference is not significant,
+the biggest speed limiting factor will be disk access/transfer speed.
+
+The biggest problem when doing something like this is that AutoCAD has some
+truly Non-3D constructs (such as CIRCLES and LINES) that are nearly impossible
+to represent in a 3-D renderer.  I have taken the "cheese log" approach to
+making 3-D constructs that approximately represent the 2-D shapes.  For
+instance, I use VERY skinny triangles (nearly degenerate) to make "LINES" and
+"3DLINES", very small spheres to represent "POINTS" and very short cylinders
+to make "CIRCLES".
+
+The more proper 3-D constructs like "TRACE", "SOLID", and "3DFACE" are most
+easily represented as one or two TRIANGLES in DKB, so an object consisting
+of these should essentially be correct.
+
+Unfortunately a fairly prevalent 3-D construct in ACAD is the "POLYLINE",
+which can get really complex and have B-Spline curves or Polygon Patch Meshes
+defined by the VERTEX points, so they aren't implemented yet.
+
+I strongly suggest isolating only one "object" per DXF file you write out,
+(that may be made up of many primitives, however) mostly because a bounding
+box is automatically created to surround the entire object.  This speeds up
+the intersection decision making process of the Ray-Tracer considerably.
+Each object should have it's own bounding volume if more than one is included
+in a scene, or the bounding box becomes fairly useless.
+
+I have attempted to filter out degenerate TRIANGLES before they can get to
+and choke the parser in the Ray-Tracer.  Degenerate TRIANGLES are ones which
+have two of the three points the same (i.e. a "LINE"!).  Since there is no
+way to Ray-Trace a "LINE" in 3-D space, these are sick entities which would
+make the Ray-Tracer enter the Olympic Cookie-Toss.  At least they used to,
+before we added code to detect them and exit after the parsing process if
+any are detected in the scene.  You should rarely have to remove them manually
+any more.  Note though, that the Tracer uses a different mathematical method
+to detect degenerates than I do here, so there is the remote possibility that
+one or two might slip by.
+
+You will have to edit the output file of the program to add in a VIEW_POINT
+and a LIGHT_SOURCE or two, at the very minimum.  I eventually will add code
+to translate these too, but for now you're on your own.
+
+If you use Design-CAD 3-D instead of AutoCAD, you must use their external
+DXF.EXE program to convert the file to DXF format before feeding it into
+this program.
+
+Anyway, if anyone wants to take a crack at "filling in the blanks" and doing
+some of the other primitives, go ahead and send it back to me!  I'm including
+the AutoCAD publicly released DXF.DOC file describing the DXF file format in
+EXHAUSTIVE detail.
+
+
+Future Enhancements (The Eternal List of Things To Do):
+
+1.  Add in code to parse the current viewpoint from the current viewport
+    from the DXF file while whizzing past the HEADER and TABLES section
+    and write out a proper DKB "VIEW_POINT" construct.
+
+2.  Add code to handle POLYLINES, if really done properly, would handle
+    the flags that identify splines and patch meshes, etc. and perform the
+    surface tesselation required to make these patch areas between VERTEX'es
+    into TRIANGLE'd polygons.
+
+3.  Add code to make "DECLARE" statements out of defined BLOCK's, and then
+    instance the BLOCK wherever indicated by the subsequent BLOCK entities.
+
+4.  I doubt it will ever handle "TEXT", as this would require a stroke-type
+    of character generator routine, or something.
+
+5.  Make it pick out the AutoShade entities for "CAMERA" and "LAMP" and
+    use these for VIEW_POINT and LIGHT_SOURCE's over any viewpoint defined.

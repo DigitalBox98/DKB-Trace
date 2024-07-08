@@ -1,0 +1,25 @@
+\chapter{Compiling the Code}
+
+\index{compiling}
+If you want to compile the source code on a supported platform, do the
+following:
+
+\begin{enumerate}
+\item Copy or rename the file called {\tt {\em system}conf.h} to
+{\tt config.h}, where {\em system} corresponds to the platform you
+wish to compile for. For example:
+\begin{verbatim}
+       rename amigaconf.h config.h
+\end{verbatim}
+
+\item Copy or rename the appropriate make file to {\tt makefile}. For
+example:
+\begin{verbatim}
+       rename amigamake makefile
+\end{verbatim}
+
+\item Edit the makefile to make sure all compiler options are set up
+properly for your system.
+
+\item Type {\tt make}.
+\end{enumerate}

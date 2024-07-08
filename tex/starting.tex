@@ -1,0 +1,64 @@
+\chapter{Getting Started}
+
+This chapter describes what you need to do to jump right in and start
+generating images. The next chapter describes the command-line options
+in more detail. Here's what you need to do:
+
+\begin{enumerate}
+\item Put the file {\tt sunset.dat} into your current directory.
+\item Make sure the files {\tt colors.dat}, {\tt shapes.dat}, and
+{\tt textures.dat} are present.
+\item Set up the default parameters.  This can be done by creating a file
+called {\tt trace.def}\index{trace.def@{\tt trace.def} startup file}
+or by setting the
+{\tt DKBOPT}\index{DKBOPT@{\tt DKBOPT} environment variable}
+environment variable.
+In either case, use the following line (you may change these defaults
+to suit your system):
+\begin{quote}
+{\tt -w320 -h400 -v +f +d +p +x -a}
+\end{quote}
+Meaning:
+\begin{description}
+\item[{\tt -v}] \optindex{v}Don't be verbose, i.e. don't show
+line numbers during trace.
+\item[{\tt +f}] \optindex{f}Write an output file in ``dump'' or ``Targa'' format (machine
+specific; IBM default is ``Targa''\index{Targa}, Amiga and Unix
+default is ``dump'').
+\item[{\tt +d}] \optindex{d}Display the image while rendering
+(on some systems, an
+additional character may follow this option to specify the
+graphics mode to use for the display).
+\item[{\tt -w320}] \optindex{w}Make the image 320 pixels wide.
+\item[{\tt -h400}]  \optindex{h}Make the image 400 pixels high.
+\item[{\tt +p}]  \optindex{p}Prompt before exitting to let you look at the picture.
+\item[{\tt +x}]  \optindex{x}Allow exitting with a key hit before the trace is finished.
+\item[{\tt -a}]  \optindex{a}Don't Antialias (Antialiasing smooths out jagged edges).
+\end{description}
+\item To render a scene, type:
+\begin{quote}
+{\tt dkb{\em xxx} -isunset.dat -osunset.dis}
+\end{quote}
+Meaning:
+\begin{description}
+\item[{\tt dkb{\em xxx}}] On different systems, the name of the
+executable may vary.  Check to see what it is on your system.  For the
+Amiga, for example, two versions are supplied: {\tt dkb881} and
+{\tt dkbieee} for systems with and without a floating-point accelerator.
+For the IBM, {\tt DKB.EXE} is the 20286 optimized/uses 80287 math
+coprocessor version, and {\tt DKBNO87.EXE} is the plain 8086/no 8087
+math coprocessor version.
+\item[{\tt -isunset.dat}] \optindex{i}Read the input file {\tt sunset.dat}.
+\item[{\tt -osunset.dis}] \optindex{o}Call the output file {\tt sunset.dis}.
+This is the usual file name extension for ``dump'' format.
+``Targa'' format files (default for IBM's) generally use the extension
+{\tt .tga}.
+\end{description}
+\item Once the image has been rendered, you must use a post-processor to
+create the final viewable image file (i.e. an IFF\index{IFF} or
+GIF\index{GIF} file), unless
+you possess 24-bit display hardware and can view the generated output
+files directly.  The post-processor used depends on your system.  See
+the section ``Displaying the Images'' for more details on post-processing
+the image.
+\end{enumerate}

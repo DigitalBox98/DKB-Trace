@@ -1,0 +1,121 @@
+\chapter{Program History and Information}
+
+\section*{Version 1.2}
+
+Initial Amiga release.
+
+\section*{Version 2.0}
+
+\index{Collins, Aaron}\index{Buck, David}
+\begin{itemize}
+\item First release Version 2.0 Conversion to the IBM done by Aaron A. Collins.
+\item New textures, Specular and Phong highlighting added by Aaron A. Collins.
+\item Triangle, Smooth Triangle, Sphere, Plane support added by David Buck.
+\item RAW, IFF and GIF image mapping added by David Buck and Aaron Collins.
+\item Transparency and Fog added by David Buck.
+\item GIF format file reader by Steve Bennett\index{Bennett, Steve}
+(used with permission).
+\item New Noise and DNoise functions by Robert Skinner\index{Skinner, Robert}
+(used with permission).
+\item TARGA format output file capability added by Aaron A. Collins.
+\item ANSI-C function prototyping for ALL functions.
+\item Reversal of the order of writing screen data from the original DKB/QRT
+``RAW'' file format.
+\item For IBM's, it has a crude VGA 320x200 by 256 color display rendering
+ability.
+\end{itemize}
+
+Version 2.0 compiles under Turbo-C 2.0 on the IBM P.C. and Lattice C
+5.05 on the Amiga.  The only file which contains the ANSI extensions
+is {\tt dkbproto.h}, so for non-ANSI compilers, you only need to remove the
+declaration of the parameters in the {\tt config.h} file and the whole thing
+should compile.  There are several example {\tt config.h} files for Amiga,
+IBM, and Unix.  The appropriate one should be copied over {\tt CONFIG.H},
+and the {\tt MAKEFILE} should be edited for your particular system and
+compiler configuration before compilation. 
+    
+Version 2.0 has a significant difference from prior releases: Speed!
+The new primitives of {\tt SPHERE}\keyindex{SPHERE},
+{\tt PLANE}\keyindex{PLANE}, {\tt TRIANGLE}\keyindex{TRIANGLE}, etc.
+greatly speed up tracing\index{processing speed}. Another
+significant speed-up is that world
+X-Y-Z values beyond 10 Million or so are ignored, and ray tracing
+beyond that distance will cease.  This produces 2 minor peculiarities:
+
+\begin{enumerate}
+\item A black stripe at the horizon point of Pre-2.0 scene description
+{\tt .data} files that have ``ground'' and ``sky'' planes defined.  The
+planes were traced out to a much greater ``infinity'' so this effect was
+unnoticeable, prior to version 2.0.
+\item Tiny black pixels in the texture, or ``Surface Acne''.
+\end{enumerate}
+
+This is usually caused by rays being refracted or reflected such that
+the ray does not happen to hit any object, and eventually becomes
+black in color as it gets too far away and gets clipped.  This effect
+can be minimized by enclosing the scene with distant ``walls'',
+``floors'', or placing ``ocean floors'' beneath water, etc.  So far, no
+scenes have required placing such planes behind the camera, unless an
+``environment map'' of sorts is desired.  See {\tt SKYTEST.DAT} for several
+examples of spurious distant planes.  If your ``acne'' still doesn't go
+away, it may be due to a large pixel sample area and it's accidentally
+picking a point which is just inside the primitive being hit.  This is
+a more tricky problem to solve, and anti-aliasing the image will
+definitely help if this sort of thing occurs. 
+
+\section*{Version 2.10}
+
+A few unofficial releases were made between 2.01 and 2.10.  The following
+points capture the major changes:
+
+\begin{itemize}
+\item Less memory is required for image mapped GIF and IFF files.
+\item The output format command-line option was changed to
+{\tt +f{\em x}}\optindex{f} where {\em x} denotes the output format.
+\item The display option {\tt +d}\optindex{d} now takes an optional extra
+character {\tt +d{\em x}} where {\em x} is system-dependent.  This
+allows you to specify the graphics mode by a command-line switch.
+\item The tokenizing pass has been removed.  It's now called directly by the
+parser.
+\item The environment variable
+{\tt DKBOPT}\index{DKBOPT@{\tt DKBOPT} environment variable} is used
+in addition to the
+{\tt trace.def}\index{trace.def@{\tt trace.def} startup file} file
+and the command-line options.
+\item The numbers in the data file can now use full scientific
+notation, eg. 10.23e-4.
+\item The {\tt +c}\optindex{c} option was added to continue an aborted trace.
+\item You can now colour or texture each component of the CSG's separately.
+\item Layered textures\index{textures!layered} implemented (see the
+section on textures).
+\item When using GIF and IFF images for image mapping, you can now
+indicate that specified registers are partially or completely transparent.
+\item Textures are now transformed whenever the object or shape they
+are attached to are transformed.
+\item The texture {\tt CHECKER_TEXTURE}\keyindex{CHECKER_TEXTURE} has
+been added.
+\item All keywords relating to the appearance of the surface have been made
+illegal in an object definition unless they are inside a {\tt TEXTURE} block.
+\item The ``basicshapes.data'' file has been split up into {\tt shapes.dat},
+{\tt colors.dat}, and {\tt textures.dat}.  These files have also been expanded
+with more useful declarations.
+\item The {\tt -l}\optindex{l} command-line option has been
+added to support library directories.
+\end{itemize}
+
+\section*{Version 2.11}
+
+\begin{itemize}
+\item Quartic surfaces\index{quartic surfaces} (4th order) added by
+Alexander Enzmann\index{Enzmann, Alexander}.
+\item Parser now accepts {\tt Ctrl-Z} as a whitespace.
+\item Keyword {\tt END_SMOOTH_TRIANGLE}\keyindex{END_SMOOTH_TRIANGLE}
+added (previously, {\tt END_TRIANGLE} was used.)
+\end{itemize}
+
+\section*{Version 2.12}
+
+\begin{itemize}
+\item Bug in smooth triangles fixed to allow them to be scaled and translated.
+\item {\tt METALLIC}\keyindex{METALLIC} texture added.
+\end{itemize}

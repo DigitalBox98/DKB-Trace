@@ -1,0 +1,120 @@
+SPLITDKB.EXE Version 1.0
+By Dan Farmer March 10, '91
+
+HISTORY:
+    The concept for this program came from Randy Antler, who created a
+    batchfile named PARTS.BAT to do the same job as this program does.
+    The limitation I ran into, however, was that I was constantly re-editing
+    copies of PARTS.BAT into 3PART.BAT and 4PART.BAT, and re-calculating the
+    starting and ending lines for the various formats I wanted to render, etc.
+
+    SPLITDKB yields the same results as PARTS.BAT, except that it allows
+    you to custom tailor the resulting batch files easily.
+
+HOW IT WORKS:
+        SPLITDKB creates batch files.  It will create a batch file for
+        each portion of the split, named PART1.BAT, PART2.BAT, etc.
+        It also creates a batch file named GLUE.BAT that uses GLUETGA.EXE
+        (came with your DKB stuff) to put Humpty-Dumpty back together again,
+        and runs a processing batch file that you provide. (more on that later.)
+
+COMMAND LINE:
+        An input filename is mandatory.  Extension is optional, with .DAT
+        assumed if none is specified.  You can also override the default
+        switches by specifiying them FOLLOWING the input filename.
+
+        The switches specified by default are: dkbno87 -p -a -v +d.
+        These switches
+           run the no87 version of dkb,
+           do not pause when finished
+           have no anti-aliasing
+           suppress line numbers
+           display the image during processing.
+
+        NOTE: This is a simple program: ANY SWITCH ON THE COMMAND LINE
+        WILL CAUSE THE PROGRAM TO DROP ALL DEFAULT SWITCHES, including
+        the name of the DKB program to run!!  Your switch list MUST
+        include the name of your DKB executeable! (Screen resolution
+        is not considered a command line switch in this document.  The
+        are provided by user input from within the program.)
+
+        A convenient way to run SPLITDKB with a different set of switches
+        would be with a batch file like the following:
+
+        RUNSPLIT.BAT
+            @echo off
+            splitdkb %1 dkb [your list of preferred switches]
+
+
+ENVIRONMENT VARIABLES:
+        There are two environment variables that can optionally be
+        set before running (or by a batch file that runs SPLITDKB).
+
+        The first is the path to the directory holding your input .DAT file.
+        If your data file is not in the current directory (the one holding
+        SPLITDKB), then you must SET DATA=data directory (SET DATA=C:\DKB\DATA)
+        DO NOT INCLUDE A TRAILING BACKSLASH! (The program will put it in where
+        its needed)
+
+        The second is the path to the directory to put the output .TGA files.
+        This is also where you need to keep the progam GLUETGA.EXE and
+        a batch file named PROCESS.BAT that will do the image conversion.
+        More about PROCESS.BAT later...
+        So, to send the output to another directory, SET GLUE=glue directory.
+        (SET GLUE=D:\GLUE)
+        Again, DO NOT INCLUDE A TRAILING BACKSLASH! (The program will put it
+        in where its needed)
+
+PROCESS.BAT:
+        Whether you chose to use a separate GLUE directory, or just dump
+        everything into the current directory, you should have a batch file
+        called PROCESS.BAT in the SAME DIRECTORY AS GLUETGA.EXE.  This batch
+        file should accept one, and only one parameter: the root name of the
+        original DKB data file.  It should call whatever program(s) you use
+        to process the .TGA image into a .GIF image, whether that be PICLAB
+        or TGA2IMG/IMG2GIF or whatever.  If you wish to skip this step, then
+        before running any of the PARTn.BATs, edit GLUE.BAT to remove the
+        call to PROCESS.BAT.
+        Here is my own PROCESS.BAT using the TGA2IMG/IMG2GIF combination:
+
+            @echo off
+            :loop
+                if "%1"=="" goto end
+                tga2img %1
+                img2gif -d -m %1
+                del %1.img
+                shift
+                goto loop
+            :end
+
+--------------------------------------------------------------------------------
+CREDITS:
+    DKB is a ray tracing program written by David K. Buck and Aaron A Collins.
+    PICLAB is an image processing program written by the Stone Soup Group.
+    TGA2IMG.EXE is an image conversion program written by myself.
+    IMG2GIF is a program written by Stephen B. Coy, provided with his
+    ray tracing program, "VIVID".
+
+NOTE:
+    If anyone knows enough about other (non-DOS) operating systems to
+    write a portable version of this program in C, please go for it.
+    I hold no claims on the rights to this program.  It is fully
+    released to the public domain.
+
+
+CHANGES IN SPLITDKB SINCE INITIAL RELEASE TO BBS ( Mar 10, '91)
+-------------------------------------------------
+- Convert commandline switches to lower case.
+- Re-calc default columns after row has been entered. (rows * 0.625)
+- Put a beep at the end of GLUE.BAT to signal completion.
+- The GLUE.BAT WAIT idea only works if using a separate GLUE directory.
+  Otherwise, the .tga files DO exist, they just haven't been released yet.
+- Limit splits to 9 or risk overflow on the PRINT USING's.
+- If only 1 part, skip call to GLUETGA and simply rename it to ROOT$+".TGA"
+- Delete PART?.TGA when finished.
+- RUNSPLIT.BAT included.  First commandline parm is filename, rest are
+  substituted.  RUNSPLIT filename %2 %3 %4, etc.
+  An example would be: RUNSPLIT MYFILE -q0
+- OOPS! Had rows & cols reversed in original code!
+- Default # of parts is now 1.
+- LZEXE the executeable for smaller size.

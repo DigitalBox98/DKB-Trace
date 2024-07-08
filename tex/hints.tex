@@ -1,0 +1,88 @@
+\chapter{Handy Hints}
+
+This chapter provides a list of helpful hints.
+
+\begin{itemize}
+\item To see a quick version of your picture, use
+{\tt -w64 -h80}\optindex{w}\optindex{h} as command
+line parameters on the Amiga.  For the IBM, try {\tt -w80 -h50}.  This
+displays the picture in a small rectangle so that you can see how
+it will look.
+
+\item Try using the sample default files for different usages --
+{\tt QUICK.DEF}
+shows a fast postage-stamp rendering (80x50, as above) to the
+screen only, {\tt LOCKED.DEF} will display the picture with anti-aliasing
+on (takes forever) with no abort (do this before you go to bed...).
+The normal default options file
+{\tt trace.def}\index{trace.def@{\tt trace.def} startup file} is read
+and you can supersede this with another {\tt .def} file by specifying
+it on the command line, for example:
+\begin{verbatim}
+     trace -iworld.dat -oworld.out quick.def
+\end{verbatim}
+
+\item When translating light sources\index{light sources!translating},
+translate the {\tt OBJECT}\keyindex{OBJECT}, not the
+{\tt QUADRIC}\keyindex{QUADRIC} surface.  The light source uses the
+center of the object as the origin of the light.
+
+\item When animating\index{textures!animation of} objects with solid
+textures, the textures must
+move with the object, i.e. apply the same {\tt ROTATE} or
+{\tt TRANSLATE} functions to the texture as to the object itself.  This is
+now done automatically in version 2.10 if the transformations are
+placed {\em after} the {\tt TEXTURE} block.
+
+\item You can declare constants for most of the data types in the program
+including floats and vectors.  By combining this with
+{\tt INCLUDE}\keyindex{INCLUDE} files,you can easily separate the
+parameters for an animation into a separate file.
+
+\item The amount of ambient light plus diffuse light should be less than
+or equal to 1.0\index{lighting!total amount of}. The program accepts
+any values, but may produce strange results.
+
+\item When using {\tt RIPPLES}\keyindex{RIPPLES}, don't make the
+ripples too deep or you may get
+strange results (the dreaded ``digital zits''!).
+
+\item {\tt WOOD}\keyindex{WOOD} textures\index{textures!transforming}
+usually look better when they are scaled to different
+values in $x$, $y$, and $z$, and then rotated to a different angle.
+
+\item You can sort of dither\index{dithering, simulated} a colour
+by placing a floating point number into the texture record:
+\begin{verbatim}
+     TEXTURE
+          0.05
+     END_TEXTURE
+\end{verbatim}
+This adds a small random value to the intensity of the diffuse
+light on the object.  Don't make the number too big or you may get
+strange results.  You generally won't want to use this if you are
+rendering frames for animations\index{textures!animation of}, as
+this ``dithering'' is random\index{textures!randomness}.
+Better results can be obtained, however, by doing proper dithering
+in a post-processor.
+
+\item You can compensate for non-square aspect ratios\index{aspect ratio}
+on the monitors by making the {\tt RIGHT}\keyindex{RIGHT} vector in
+the {\tt VIEWPOINT}\keyindex{VIEWPOINT}\index{viewpoint!aspect ratio}
+longer or shorter.  A good value for the Amiga is about 1.333.
+This seems okay for IBM's too at 320x200 resolution.  If your spheres
+and circles aren't round, try varying it.
+
+\item If you are importing images from other systems, you may find that
+the shapes are backwards (left-to-right inverted) and no rotation
+can make them right.  All you have to do is negate the terms in the
+{\tt RIGHT} vector of the viewpoint to flip the camera left-to-right (use
+the ``right-hand'' coordinate system).
+
+\item By making the {\tt DIRECTION}\keyindex{DIRECTION} vector in
+the {\tt VIEWPOINT}\keyindex{VIEWPOINT} longer, you can achieve the
+effect of a tele-photo\index{tele-photo lens effect} lens.
+
+\item When rendering on the Amiga, use a resolution of 320 by 400 to
+create a full sized HAM picture.
+\end{itemize}

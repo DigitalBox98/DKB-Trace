@@ -1,0 +1,520 @@
+\chapter{A Tutorial Walkthrough}
+
+This section, is designed to get you up and running designing your own
+pictures without all the nit-picky details.  Once you've made a few
+of your own data files, you'll probably want to advance to the next
+section to fill in the gaps.
+
+\section{The First Image}
+
+Let's get right to the meat of the matter and create the data file for a
+simple picture.  Since raytracers thrive on spheres, that's what we'll render
+first.
+
+First we have to create a viewpoint to tell the computer where our camera is
+and where it's looking.  To do this, we use 3D coordinates.  The usual
+coordinate system\index{coordinate system}
+for DKBTrace has Y pointing up, X pointing to the right, and
+Z pointing into the screen as shown in Figure \ref{axes}.
+
+\begin{figure}[htbp]
+\begin{centering}
+\input{axes}
+\caption{DKBTrace Coordinate Axes}
+\label{axes}
+\end{centering}
+\end{figure}
+
+Using your personal favorite text editor (i.e., user interface),
+create a file called {\tt picture1.dat}.  Now, type in the
+following:\footnote{The input is case sensitive, so be sure to
+get capital and lowercase letters correct.}
+\begin{verbatim}
+      INCLUDE "colors.dat"
+      INCLUDE "shapes.dat"
+      INCLUDE "textures.dat"
+
+      VIEW_POINT
+         LOCATION  <0 0 0>
+         DIRECTION <0 0 1>
+         UP        <0 1 0>
+         RIGHT     <1.33333 0 0>
+      END_VIEW_POINT
+\end{verbatim}
+The first {\tt INCLUDE}\keyindex{INCLUDE}
+statement reads in definitions for various
+useful colours.  (Being a proud Canadian, I spell colour the proper
+way with a ``u''.  To avoid confusing the rest of the world, however,
+I've set up the raytracer to allow either spelling of the word.)
+
+The second and third include statements read in some useful shapes and textures
+respectively.  When you get a chance, have a look through them to see
+but a few of the many possible shapes and textures available.
+
+Include files may be nested, if you like.  The total pre-defined number of
+{\tt INCLUDE}'d files (nested or not) per scene is 10.
+
+Filenames specified in the {\tt INCLUDE} statements will be searched
+for in the home (current) directory first, and if not found, will then
+be searched for in directories specified by any {\tt -l}\optindex{l}
+(library path) options active.  This would facilitate keeping all your
+"include" ({\tt .inc}) files, {\tt shapes.dat}, {\tt colors.dat}, and
+{\tt textures.dat} in an ``include'' subdirectory, and giving an
+{\tt -l} option on the command line to where your library of include files
+are.
+
+This viewpoint declaration puts our camera at the center of the
+universe ({\tt LOCATION <0 0 0>}) pointing into the Z direction
+({\tt DIRECTION <0 0 1>}) and with the camera being held upright
+({\tt UP <0 1 0>}).  The final term compensates for the aspect ratio
+of the screen
+({\tt RIGHT <1.33333 0 0>}).  If your computer has square pixels, you
+may want to change this to ``{\tt RIGHT <1.0 0 0>}''.  For details on
+exactly how the camera works, see the section ``How it All Works''.
+
+Now, let's place a red sphere into the world:
+\begin{verbatim}
+      OBJECT
+         SPHERE <0 0 3> 1 END_SPHERE
+         TEXTURE
+            COLOUR Red
+         END_TEXTURE
+      END_OBJECT
+\end{verbatim}
+This sphere is 3 units away from the camera and has a radius of 1.  Note that
+any parameter that changes the appearance of the surface (as opposed to the
+shape of the surface) is called a texture parameter and {\em must} be
+placed into a
+\verb#TEXTURE#-\verb#END_TEXTURE# block.  In this case, we are just
+setting the colour.
+
+One more detail -- we need a light source:
+\begin{verbatim}
+      OBJECT
+         SPHERE <0 0 0> 1 END_SPHERE
+         TEXTURE
+            COLOUR White
+         END_TEXTURE
+                             { This is 2 units to our right, }
+         TRANSLATE <2 4 -3>  { 4 units above, and 3 units    }
+                             { behind our camera.            }
+         LIGHT_SOURCE
+         COLOUR White
+      END_OBJECT
+\end{verbatim}
+Note: For light sources, {\em always} declare them to be centered at
+the origin {\tt <0 0 0>}, then use {\tt TRANSLATE} to put them where
+you want.\index{light sources!and {\tt TRANSLATE}}
+If you don't do this, the light source won't work right. We
+must also specify the colour of the light source {\em outside} the
+{\tt TEXTURE} block because the renderer doesn't want to work out the
+whole surface colour just to get the colour of the light it
+emits.\index{light sources!and {\tt TEXTURE}}
+
+That's it!  Close the file and render a small picture of
+it:\footnote{The program name may vary on different systems.}
+\begin{verbatim}
+      trace -w80 -h100 -f -ipicture1.dat
+\end{verbatim}
+On the IBM, the command line would be:\footnote{The program name would
+be {\tt dkbno87} if you have an 8086/8088 system or no math co-processor.}
+\begin{verbatim}
+      dkb -w80 -h50 -f -ipicture1.dat
+\end{verbatim}
+
+\section{Phong Highlights}
+
+You've now rendered your first picture.  I know you want to run out and show
+all your friends how amazing your computer is to be able to generate such an
+incredible picture, but just wait a few minutes -- you ain't seen nothin' yet.
+(For those people who complained that the picture took too long to draw, just
+wait -- you ain't seen nothin' yet, either\ldots)
+
+Let's add a nice little specular highlight\index{specular highlight}
+(shiny spot) to the sphere.  It
+gives it that neat ``computer graphics'' look.  Change the definition of the
+sphere to this:
+\begin{verbatim}
+      OBJECT
+         SPHERE <0 0 3> 1 END_SPHERE
+         TEXTURE
+            COLOUR Red
+            PHONG 1.0
+         END_TEXTURE
+      END_OBJECT
+\end{verbatim}
+Now render this.  In all seriousness, the {\tt PHONG} highlight does
+add a lot of credibility to the picture.  You'll probably want to use
+it in many of your pictures.
+
+\section{Textures}
+
+One of the really nice features of this raytracer is its sophisticated
+textures.  Change the definition of our sphere to the following and then
+re-render it:
+\begin{verbatim}
+      OBJECT
+         SPHERE <0 0 3> 1 END_SPHERE
+         TEXTURE
+            Dark_Wood
+            SCALE <0.2 0.2 0.2>
+            PHONG 1.0
+         END_TEXTURE
+      END_OBJECT
+\end{verbatim}
+The textures are set up by default to give you one ``feature'' across
+a sphere of radius 1.0.  A ``feature'' is roughly defined as a colour
+transition.  For example, a wood texture would have one band on a
+sphere of radius 1.0.  By scaling the wood by {\tt <0.2 0.2 0.2>}, we
+shrink the texture to give us about five bands. Please note that this
+is not a hard and fast rule.  It's only meant to give you a rough idea
+for the scale to use for a texture.  Don't start reporting problems if
+you get three bands instead of five.  This rule of thumb just puts you
+in the ballpark.
+
+One note about the {\tt SCALE}\keyindex{SCALE} operation.  You can
+magnify or shrink
+along each direction separately.  The first term tells how much to
+magnify or shrink in the left-right direction.  The second term
+controls the up-down direction and the third term controls the
+front-back direction.
+
+I encourage you to look through the {\tt textures.dat} file to see
+what textures are defined there and try them out.  Some of them are
+quite spectacular.
+
+\section{Other Shapes}
+
+So far, we've just defined spheres.  There are several other kinds of
+shapes that can be rendered by DKBTrace.  Let's try one out with a
+computer graphics standard -- a checkered floor.  Add the following
+object to your {\tt .dat} file:
+\begin{verbatim}
+      OBJECT
+         PLANE <0.0 1.0 0.0> -1.0 END_PLANE
+         TEXTURE
+            CHECKER
+               COLOUR RED 1.0
+               COLOUR BLUE 1.0
+         END_TEXTURE
+      END_OBJECT
+\end{verbatim}
+The object defined here is an infinite plane.  The vector
+{\tt <0.0 1.0 0.0>} is the surface normal of the plane (i.e., if you where
+standing on the surface, the normal points straight up.)  The number
+afterward is the distance that the plane is displaced along the normal
+-- in this case, we move the floor down one unit so that the sphere
+(radius 1) is resting on it.  The checker texture specifies the two
+colours to use in the checker pattern.
+
+Looking at the floor, you'll notice that the wooden ball casts a shadow on the
+floor.  Shadows are calculated accurately (well, almost -- more later) by the
+raytracer.
+
+Another kind of shape you can use is called a quadric surface.  To be totally
+honest, the shapes you've been using so far have been quadrics.  Spheres and
+planes are types of quadric surfaces.  There are many other quadric surfaces
+however.  These are all described by a certain kind of mathematical formula
+(see the section on Quadrics in the next chapter).  They include cylinders,
+cones, paraboloids (like a satellite dish), hyperboloids (saddle-shaped) and
+ellipsoids as well as the spheres and planes we've used so far.
+
+All quadrics except for ellipsoids and spheres are infinite in at least one
+direction.  For example, a cylinder has no top or bottom - it goes to infinity
+at each end.  Quadrics all have one common feature - if you draw any straight
+line through a quadric, it will hit the surface at most twice.  A torus
+(donut), for example, is not a quadric since a line can hit the surface up to
+four times going through.
+
+Enough talk -- let's render one of these ``quadrics''\ldots While
+we're at it, we'll add a few features to the surface.  Add the
+following definition to your {\tt .dat} file:
+\begin{verbatim}
+      OBJECT
+         QUADRIC Cylinder_Y END_QUADRIC
+         TEXTURE
+            COLOUR GREEN 0.5
+            REFLECTION 0.5
+         END_TEXTURE
+         SCALE <0.4  0.4  0.4>
+         TRANSLATE <2 0 5>
+      END_OBJECT
+\end{verbatim}
+This object is a cylinder along the Y (up-down) axis.  It's green in colour
+and has a mirrored surface (hence the reflection of 0.5) this means that half
+the light coming from the sphere is reflected from other objects in the room.
+A reflection of 1.0 is a perfect mirror.
+
+The object has been shrunk by scaling it by {\tt <0.4 0.4 0.4>}.  Note
+that since the cylinder is infinite along the Y axis, the middle term
+is kind of pointless.  One four tenths of infinity is still infinity.
+(Don't use 0, though.  That will definitely cause a fatal crash!)
+Finally, the cylinder has been moved back and to the right so you can
+see it more clearly.
+
+\section{Constructive Solid Geometry}
+
+The shapes we've talked about so far are nice, but not terribly useful on
+their own for making realistic scenes.  It's hard to make interesting objects
+when you're limited to spheres, infinite cylinders, infinite planes, and so
+forth.  
+
+Constructive Solid Geometry (CSG) is a technique for taking these simple
+building blocks and combining them together.  You can use a cylinder to bore a
+hole through a sphere.  You can use planes to cap cylinders and turn them into
+flat circular disks (that are no longer infinite).
+
+Before getting into CSG, however, let me talk about inside and
+outside.\index{inside, of objects}\index{outside, of objects}%
+\index{objects!inside and outside}
+Every
+primitive (except triangles -- I'll talk about this later) divides the world
+into two regions.  One region is inside the surface and one is outside.  So,
+given any point in space, you can say it's either inside or outside any
+particular primitive object (well, it could be exactly on the surface, but
+usually numerical inaccuracies will put it to one side or the other).  Even
+planes have an inside and an outside.  By definition, the surface normal of
+the plane points towards the outside of the plane.  (For a simple floor, for
+example, the space above the floor is ``outside'' and the space below the floor
+is ``inside''.  For simple floors this in unimportant, but for planes as parts
+of CSG's it becomes much more important).
+
+CSG uses the concepts of inside and outside to combine shapes
+together. Consider the situation in Figure \ref{csg0}.\footnote{The
+diagrams shown here demonstrate the concepts in 2D and are indended
+only as an analogy to the 3D case.  Note that the triangles supported
+by DKBTrace cannot be used in CSG (except for unions) since they have
+no inside and outside.}\index{triangle!inside and outside}
+
+\begin{figure}[htbp]
+\begin{centering}
+\input{csg0}
+\caption{Sample 2D figures}
+\label{csg0}
+\end{centering}
+\end{figure}
+
+There are three CSG operations you can use:
+
+\begin{description}
+\item[{\tt UNION A B END_UNION}] \keyindex{UNION}A point is inside
+the union if it is
+inside A {\em or} it's inside B (or both).  This gives an ``additive''
+effect to the component objects, as shown in Figure \ref{csg1}.
+
+\begin{figure}[htbp]
+\begin{centering}
+\input{csg1}
+\caption{{\tt UNION} of the Sample Figures}
+\label{csg1}
+\end{centering}
+\end{figure}
+
+\item[{\tt INTERSECTION A B END_INTERSECTION}] \keyindex{INTERSECTION}A
+point is inside the
+intersection if it's inside both A {\em and} B.  This ``logical
+AND's'' the shapes and gets the common part, most useful for
+``clipping'' infinite shapes off, etc., as shown in Figure \ref{csg2}.
+
+\begin{figure}[htbp]
+\begin{centering}
+\input{csg2}
+\caption{{\tt INTERSECTION} of the Sample Figures}
+\label{csg2}
+\end{centering}
+\end{figure}
+
+\item[{\tt DIFFERENCE A B END_DIFFERENCE}] \keyindex{DIFFERENCE}A point
+is inside the
+difference if it's inside A but not inside B.  The result is a
+``subtraction'' of the 2nd shape from the first shape, shown in Figure
+\ref{csg3}.
+
+\begin{figure}[htbp]
+\begin{centering}
+\input{csg3}
+\caption{{\tt DIFFERENCE} of the Sample Figures}
+\label{csg3}
+\end{centering}
+\end{figure}
+\end{description}
+
+Let's give a concrete example by drilling a yellow hole through our sphere.
+Go to the definition of the sphere and change it to read the following:
+\begin{verbatim}
+      OBJECT
+         DIFFERENCE
+            SPHERE <0 0 3> 1 END_SPHERE
+            QUADRIC
+               Cylinder_Z
+               SCALE <0.2 0.2 0.2>
+               COLOUR Yellow
+            END_QUADRIC
+         END_DIFFERENCE
+         TEXTURE
+            Dark_Wood
+            SCALE <0.2 0.2 0.2>
+            PHONG 1.0
+         END_TEXTURE
+      END_OBJECT
+\end{verbatim}
+
+One more point about CSG operations.  You can flip a shape inside-out
+by putting the keyword {\tt INVERSE}\keyindex{INVERSE} into the
+shape's definition.
+This keyword will not change the appearance of the shape unless you're
+using CSG.  In the case of CSG, it gives you more flexibility.  For
+example, the result of
+\begin{verbatim}
+   INTERSECTION B A-INVERSE END_INTERSECTION
+\end{verbatim}
+yields the shape shown in Figure \ref{csg4}.
+\begin{figure}[htbp]
+\begin{centering}
+\input{csg4}
+\caption{{\tt INVERSE-DIFFERENCE} of the Sample Figures}
+\label{csg4}
+\end{centering}
+\end{figure}
+Note that a {\tt DIFFERENCE} is really just an {\tt INTERSECTION} of
+one shape with the {\tt INVERSE} of another.  This happens to be how
+{\tt DIFFERENCE} is actually implemented in the code.
+
+\section{Advanced Textures}
+
+The textures available in DKBTrace are 3D solid textures.  This means that the
+texture defines a colour for any 3D point in space.  Just like a real block of
+marble or wood, there is colour all through the block -- you just can't see it
+until you carve away the wood or marble that's in the way.  Similarly, with a
+3D solid texture, you don't see all the colours in the texture -- you only see
+the colours that happen to be visible at the surface of the object.
+
+As you've already seen, you can scale, translate, and rotate
+textures\index{textures!animation of}%
+\index{animation|see{textures, animation of}}.
+In fact, you could make an animation in which the objects stay still and the
+textures translate and rotate through the object.  The effect would be like
+watching a time-lapse film of a cloudy sky -- the clouds would not only move,
+but they would also change shape smoothly.
+
+Often, textures are perturbed by noise.  This ``turbulence''
+\index{textures!and {\tt TURBULENCE}}\index{perturbation}%
+\index{noise}\index{turbulence}
+distorts the
+texture so it doesn't look quite so perfect.  Try changing the sphere in the
+above example to have the following texture:
+\begin{verbatim}
+         TEXTURE
+            Dark_Wood
+            TURBULENCE 0.0
+            SCALE <0.2 0.2 0.2>
+            PHONG 1.0
+         END_TEXTURE
+\end{verbatim}
+When you compare this with the original image, you'll see that the pattern is
+much more boring.
+
+Finally, many textures use colour maps.\index{textures!colour maps}
+A colour map translates a number
+between 0.0 and 1.0 into a colour.  The number typically represents the
+distance into a vein of colour -- the further into the vein you get, the more
+the colour changes.  Here's a typical colour map.  Try this out on the sphere
+defined above by changing the definition to this:
+\begin{verbatim}
+      OBJECT
+         SPHERE <0 0 3> 1 END_SPHERE
+         TEXTURE
+            WOOD
+            SCALE <0.2 0.2 0.2>
+            COLOUR_MAP
+                [0.0 0.3  COLOUR Red   COLOUR Green]
+                [0.3 0.6  COLOUR Green COLOUR Blue]
+                [0.6 1.01 COLOUR Blue  COLOUR Red]
+            END_COLOUR_MAP
+            PHONG 1.0
+         END_TEXTURE
+      END_OBJECT
+\end{verbatim}
+This means that as the texture enters into a vein of wood, it changes colour
+smoothly from red to green, from green to blue, and from blue to red again.
+As it leaves the vein, the transition occurs in reverse.  (Since there is no
+turbulence on the wood by default, the veins of colour should show up quite
+well.)
+
+You can get more ``bang for your buck'' from textures by using
+{\tt ALPHA}\keyindex{ALPHA} properties of colour.  Every
+colour you define in DKBTrace is a
+combination of red, green, blue and alpha.  The red, green and blue
+are simple enough.  The alpha determines how transparent that colour
+is.  A colour with an alpha of 1.0 is totally transparent.  A colour
+with an alpha of 0.0 is totally opaque.  Here's a neat texture to try:
+\begin{verbatim}
+   TEXTURE
+      TURBULENCE 0.5
+      BOZO
+      COLOUR_MAP
+         { transparent to transparent }
+         [0.0 0.6 COLOUR RED 1.0 GREEN 1.0 BLUE 1.0 ALPHA 1.0
+                  COLOUR RED 1.0 GREEN 1.0 BLUE 1.0 ALPHA 1.0]
+         { transparent to white }
+         [0.6 0.8 COLOUR RED 1.0 GREEN 1.0 BLUE 1.0 ALPHA 1.0
+                  COLOUR RED 1.0 GREEN 1.0 BLUE 1.0]
+         { white to grey }
+         [0.8 1.001 COLOUR RED 1.0 GREEN 1.0 BLUE 1.0
+                    COLOUR RED 0.8 GREEN 0.8 BLUE 0.8]
+      END_COLOUR_MAP
+      SCALE <0.4  0.08  0.4>
+   END_TEXTURE
+\end{verbatim}
+This is my (famous) cloud texture.\index{textures!famous cloud}
+It creates white clouds with grey linings.
+The texture is transparent in the places where the clouds disappear so you can
+see through it to the objects that are behind.
+
+Now for one more feature which is new for 2.10 (hold onto your hats!)  You can
+now layer textures one on top of another to create more sophisticated textures.
+\index{textures!layered}
+For example, suppose I want a wood-coloured cloudy texture.  What I do is put
+the wood texture down first followed by my cloud texture.  Wherever the cloud
+texture is transparent, the wood texture shows through.  Change your sphere to
+the following and you'll see.
+\begin{verbatim}
+  OBJECT
+     SPHERE <0 0 3> 1 END_SPHERE
+     TEXTURE                { This is the wood texture }
+        Dark_Wood           { we used earlier.         }
+        TURBULENCE 0.0
+        SCALE <0.2 0.2 0.2>
+        PHONG 1.0
+     END_TEXTURE
+     TEXTURE                { This is the cloud texture }
+       TURBULENCE 0.5       { we just defined.          }
+       BOZO
+       COLOUR_MAP
+         { transparent to transparent }
+         [0.0 0.6 COLOUR RED 1.0 GREEN 1.0 BLUE 1.0 ALPHA 1.0
+                  COLOUR RED 1.0 GREEN 1.0 BLUE 1.0 ALPHA 1.0]
+         { transparent to white }
+         [0.6 0.8 COLOUR RED 1.0 GREEN 1.0 BLUE 1.0 ALPHA 1.0
+                  COLOUR RED 1.0 GREEN 1.0 BLUE 1.0]
+         { white to grey }
+         [0.8 1.001 COLOUR RED 1.0 GREEN 1.0 BLUE 1.0
+                    COLOUR RED 0.8 GREEN 0.8 BLUE 0.8]
+       END_COLOUR_MAP
+       SCALE <0.4  0.08  0.4>
+     END_TEXTURE
+  END_OBJECT
+\end{verbatim}
+Each successive texture is layered on top of the previous textures.  In the
+places where you can see through the upper texture, you see through to the
+lower textures.
+
+\section{Walk-through Wrap-up}
+
+In this walk-through, I've only tried to show the highlights of the raytracer
+without getting into all possible options and features.  To get all of those,
+you'll have to read through the following section on the Scene Description
+Language.  Hopefully it will be fairly straight forward now that you have a
+feel for the language and how it works.  Hopefully you'll find that the
+textual interface provided by DKBTrace isn't quite as scary as people think at
+first.

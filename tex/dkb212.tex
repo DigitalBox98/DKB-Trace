@@ -1,0 +1,69 @@
+%-*-Mode: LaTeX-*-
+
+% tell LaTeX about a few words to get better breaks
+\hyphenation{para-bo-loid para-bo-loids bit-map bit-mapped}
+
+% Extra commands for adding index entries:
+% add an entry for a definition of a command line option
+\newcommand{\optdefindex}[2]{\optindex{#1}\index{#2|see{{\tt #1} option}}}
+% add an entry for a reference to a command line option
+\newcommand{\optindex}[1]{\index{#1@{\tt #1} option}\index{command-line options!#1@{\tt #1} option}}
+% add an entry for a keyword
+\newcommand{\keyindex}[1]{\index{#1@{\tt #1} keyword}}
+% add an entry in teletype font
+\newcommand{\ttindex}[1]{\index{#1@{\tt #1}}}
+% add an entry in emphasized font
+\newcommand{\emindex}[1]{\index{#1@{\em #1}}}
+% use the \see command for index cross references
+\newcommand{\see}[2]{{\em see\/} #1}
+\makeindex
+
+% add the twoside option in the square brackets if desired
+\documentstyle[11pt]{report}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\begin{document}
+
+% allow underscore
+\catcode`\_=12
+
+\title{DKBTrace Ray-Tracer, Version 2.12}
+\author{David K. Buck \\
+22C Sonnet Cres. \\
+Nepean, Ontario \\
+Canada, K2H 8W7 \\
+\\
+``It's free, and it's well worth the price''}
+\maketitle
+
+\pagenumbering{roman}
+\tableofcontents
+\listoffigures
+\clearpage
+\pagenumbering{arabic}
+
+\input{notices}
+\input{overview}
+\input{starting}
+\input{options}
+\input{tutorial}
+\input{language}
+\input{display}
+\input{utils}
+\input{works}
+\input{quests}
+\input{convert}
+\input{hints}
+\input{compile}
+\input{porting}
+\input{history}
+\input{refs}
+\input{concl}
+\input{authors}
+
+% Note: If the index file has underscores that aren't preceded by
+% a backslash, then they come out as raised dots. Use sed on the
+% output of makeindex, if you haven't already.
+\input{index}
+
+\end{document}

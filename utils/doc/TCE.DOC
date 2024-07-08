@@ -1,0 +1,166 @@
+
+
+    TCE: The Color Editor
+    Version 1.01
+    April 12, '91
+
+    Another BirdWare product by Dan Farmer ("Its as free as a bird!")
+    Well, actually, you *could* send me some money to get a math chip!
+    It would still be cheep! (ugh! boo!)
+
+    Copyright Dan Farmer, 1991.  All rights reserved.
+
+    BirdWare Software
+    1001 E. 80th St. Apt#102
+    Bloomington MN 55425
+    (612) 854-6209
+
+    All the usual legal disclaimers pertaining to everything under the sun
+    regarding the use of this software are true with this program, also.
+    The author is not responsible for anything whatsoever, whenever.  This
+    program is freely distributable,  however, if you make any changes to
+    the source code, please DOCUMENT the hell out of it if you upload it
+    anywhere.  This program may NOT be sold for any amount.
+
+
+    The Color Editor is a tool for use by DKBTrace users to preview and
+    design colors for inclusion in their data files. (It also gave me an
+    opportunity to play around a bit during working hours while IBM was
+    busy trying (unsucessfully) to recover our LAN server drives!)
+    As you will see, I got a bit carried away with GUI interfaces during
+    this project.  No, this is NOT an Amiga port.
+
+
+    Environment / Commandline options:
+    ----------------------------------
+        TCE looks for your COLORS.DAT file in the current working directory
+        unless you tell it to look elsewhere.
+        There are two ways in which you can do this:
+
+        1) You can set an evironment variable DKB to the path to COLORS.DAT
+                SET DKB=C:\DKB\DATA\COLORS.DAT
+
+                                    - or -
+
+        2) You can tell TCE on the commandline:
+                TCE c:\dkb\data\color.dat
+                        - or -
+                TCE mycolors.dat
+
+
+    How it works:
+    -------------
+        1) Upon startup, the program will pause for a few seconds while it
+           generates a gray palette and paints the preview image.
+
+        2) If you didn't specify a color data file, and TCE can't find one
+           in the current directory, it will ask you for the path and name
+           of your color file.
+
+        3) Viewing COLORS.DAT:
+            Once the color file has been loaded, TCE will display the first
+            color in your file.  You can scroll through the file with your
+            up/down arrow keys.  Press "P" or "V" to project the color onto
+            the preview image.
+
+        4) Keys:
+
+            R G or B (Upper Case)    Increase Red, Green, or Blue.
+            r g or b (Lower Case)    Decrease Red, Green, or Blue.
+            D or d                   Darken the current color.
+            L or l                   Lighten the current color.
+            C or c                   Clear all values to white,gray,or black.
+            V,v,P,p                  PreView color on a shaded sphere.
+            S,s,W or w               Save/Write the color to COLORS.DAT
+            +                        Toggle Fast/Slow step rate.
+            ESC                      Quit the program.
+            F                        Specify Input/Output filenames.
+
+    Editing/Creating Colors:
+    ------------------------
+    Existing COLORS.DAT color declarations will NEVER be over-written by TCE.
+    You can, however, scroll to a color in the file and then modify it,
+    and save it with a new name (or the same name, for that matter.  See
+    section below about saving colors).
+
+
+    Fine / Course Tuning:
+    -----------------------
+    On startup, changes are stepped by +/- 0.01, so you can make very fine
+    changes in hue or saturation, but at the same time, it may seem sometimes
+    like nothing is happening. Pressing the + key will toggle to a fast mode
+    where changes are stepped +/- 0.1.  A panel in the lower right displays
+    either "Fast" or "Slow" to show which mode you are currently using.
+
+
+    Saving a color (S,s,W, or w keys)
+    -----------------------
+    Pressing the "S" or "W"  key puts you into save mode.  You will be prompted
+    for a descriptive name for the new color.  Pressing <ENTER> without
+    entering a name will abort the save operation and you will be returned
+    to the color editor.
+
+    Color names are NOT checked for duplicity, but at the same time,
+    colors are never over-written.  If you do have duplicate color names,
+    I believe DKB will use the last declared definition.  There is no delete
+    function, so you will have to use a text editor to remove unwanted
+    color declarations.  There is a limit to the number of DECLARATIONS that
+    DKB can use, so you may wish to store new colors to a separate COLORS.DAT
+    file until you want to use them.
+
+    Spherical Preview  (V,v,P or p keys)
+    -----------------
+    This is, admittedly, a hack.  It's sorta slow generating the palette,
+    and the way I draw the sphere leaves a bit to be desired, and it is
+    only an approximation of the way the color will look on a rendered
+    object, but it got the product out of the door and into your hands.
+    (Besides, it's really kinda neat!).
+
+
+    That's about it. Pretty easy, huh?  But I think you'll find it helpful
+    when you're looking for that illusive color for bread dough!
+
+
+    What's new:
+
+    Version 1.01
+
+        Doesn't really DO anything new, just what it does, it does better.
+
+        Better palette scaling for the preview window.  Nicer preview
+        image, too, with a sky and a shaded background.  Also, the
+        preview image now is drawn only once, at load time.
+
+        This gives two benefits:
+
+        1) You only have to wait once for it to draw.
+        2) Since the palette is not updated in the image until you
+           press "Preview", you can compare a previously previewed color
+           against one in the window.
+
+        Now if only I can come up with a quicker palette loader!
+        (I'm looking into it)
+
+        The original release allowed you to specify a PATH to your
+        color file, either on the command line or with a DOS environment
+        variable "DKB".  Both methods still work, but must have the
+        filename, too.  This is because DKB Version 2.10 looks for
+        a file named COLORS.DAT, where earlier versions looked only
+        for COLOR.DAT (singular).
+
+        But wait... it gets better!
+        You can now specify from within the program the name of your
+        input file and optionally a name for a separate output file.
+        What used to be the Help button (who needs help when you have
+        a document file, right?) is now the "Files" button.  Press "F"
+        and you will be asked if you wish to specify an Input file or
+        an Output file.  Pressing <Enter> will abort the process.
+
+    CREDITS: DKB is a superb (by far the best for PC's) ray tracing
+             program written by David K. Buck with Aaron Collins.
+             DKB is freeware, not shareware or crippleware.
+             (Motto: "It's free, and well worth the price")
+
+             DKB is available on CompuServe (tm) (GO COMART) and
+             the "You Can Call Me Ray" BBS in Chicago (708) 358-5611.
+

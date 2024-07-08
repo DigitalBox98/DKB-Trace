@@ -1,0 +1,1533 @@
+\chapter{The Scene Description Language}
+
+The Scene Description Language allows the user to describe the world in a
+readable and convenient way. This chapter is effectively a reference
+manual for DKBTrace.
+
+The language delimits comments\index{comments} by the left and right
+braces (``{\tt \{}'' and ``{\tt \}}''). Nested comments are allowed,
+but no sane person uses them anyway, right?
+The language allows include files to be specified by placing the line:
+\keyindex{INCLUDE}
+\begin{verbatim}
+     INCLUDE "filename"
+\end{verbatim}
+at any point in the input file (include files may be nested).  The filename
+must be enclosed in double quotes and may be up to 40 characters long,
+including the two double-quote ({\tt "}) characters.  You may have at most 10
+{\tt INCLUDE}'d files per scene trace, whether nested or not.
+
+\section{The Basic Data Types}
+
+There are several basic types of data.
+
+\subsection{Floats}
+
+\index{float data type}\index{data types!float}
+Floats are represented by an optional sign ({\tt -}), some digits, an optional
+decimal point, and more digits.  Version 2.10 now supports the
+``{\tt e}'' notation for exponents.  The following are valid floats:
+\begin{verbatim}
+     1.0  -2.0  -4  34  3.4e6 2e-5
+\end{verbatim}
+
+\subsection{Vectors}
+
+\index{vector data type}\index{data types!vector}
+Vectors are arrays of three floats.  They are bracketed by angle brackets
+(``{\tt <}'' and ``{\tt >}''), and the three terms usually represent x, y,
+and z. For example:
+\begin{verbatim}
+     < 1.0  3.2  -5.4578 >
+\end{verbatim}
+Vectors typically refer to relative points.  For example, the vector:
+\begin{verbatim}
+     <1 2 3>
+\end{verbatim}
+means the point that's 1 unit to the right, 2 units up, and 3 units in front.
+``Of what?'' you ask?  Well, usually it's relative to the center of the
+``universe'' at {\tt <0 0 0>}.
+
+\subsection{Transformations -- {\tt TRANSLATE}, {\tt ROTATE}, and {\tt SCALE}}
+
+\index{transformations}\keyindex{TRANSLATE}\keyindex{ROTATE}\keyindex{SCALE}
+In a few places here and there, vectors are used as a convenient notation but
+don't represent a point in space. This is the case for the transformations
+{\tt TRANSLATE}, {\tt ROTATE}, and {\tt SCALE}:
+
+\begin{description}
+\item[{\tt TRANSLATE <{\em x y z\/}>}] Move the object {\em x} units
+to the right, {\em y} units up, and {\em z} units away from us.
+\item[{\tt SCALE <{\em xs ys zs\/}>}] Scale the object by {\em xs}
+units in the left/right direction, {\em ys} units in the up/down
+direction and {\em zs} units in the front/back direction.
+\item[{\tt ROTATE <{\em xr yr zr\/}>}] Rotate the object {\em xr}
+degrees about the X axis, then {\em yr} degrees about the Y axis,
+then {\em zr} degres about the Z axis (note that the order matters).
+\end{description}
+
+To work out the rotation directions, you must perform the famous ``Computer
+Graphics Aerobics'' exercise.  Hold up your left hand.
+\index{left-handed coordinate system}\index{coordinate system!left-handed}
+point your thumb in the
+positive direction of the axis you want to rotate about.  Your fingers will
+curl in the positive direction of rotation.  This is the famous ``left-hand
+coordinate system'', illustrated in Figure \ref{lefthand}.
+\begin{figure}[htbp]
+\begin{centering}
+\input{lefthand}
+\caption{Left-hand Coordinate System}
+\label{lefthand}
+\end{centering}
+\end{figure}
+If you want to use a right-hand system, as some CAD
+systems do, the {\tt RIGHT} vector in the {\tt VIEW_POINT} needs to
+be changed.  See the
+detailed description of the {\tt VIEW_POINT}, and use your right hand for the
+``Aerobics''. 
+
+\subsection{Colours}
+
+\index{colour!data type}\index{data types!colour}
+A colour consists of a red component, a green component, a blue
+component, and possibly an alpha component.  All four components are
+floats in the range 0.0 to 1.0.  The syntax for Colours is the word
+{\tt COLOUR} followed by any or all of the {\tt RED}, {\tt GREEN},
+{\tt BLUE} or {\tt ALPHA} components in any order. For example:
+\begin{verbatim}
+     COLOUR  RED 1.0  GREEN 1.0  BLUE 1.0
+     COLOUR  BLUE 0.56
+     COLOUR  GREEN 0.45 RED 0.3 BLUE 0.1 ALPHA 0.3
+\end{verbatim}
+{\tt ALPHA} is a transparency indicator.  If an object's colour
+contains some transparency, then you can see through it.  If
+{\tt ALPHA} is 0.0, the object is totally opaque.  If it is 1.0, it is
+totally transparent.
+
+For those people who spell ``Colour'' the American way as ``Color'',
+the program will also accept {\tt COLOR}
+\index{colour!and color}
+as equivalent to {\tt COLOUR} in all instances.
+
+\subsection{Colour Maps}
+
+\index{colour map data type}\index{data types!colour map}
+For wood, marble, spotted, agate, granite, and gradient texturing, the user
+may specify arbitrary colours to use for the texture.  This is done by a
+colour map or ``colour spline''.  When the object is being textured, a number
+between 0.0 and 1.0 is generated which is then used to form the colour of the
+point.  A Colour map specifies the mapping used to change these numbers into
+colours. The syntax is as follows:
+\begin{verse}
+{\tt COLOUR_MAP} \\
+{\tt \ \ \ \ \ [{\em start-value end-value colour1 colour2\/}]} \\
+{\tt \ \ \ \ \ [{\em start-value end-value colour1 colour2\/}]} \\
+\ \ \ \ \ ... \\
+{\tt END_COLOUR_MAP}
+\end{verse}
+The numeric value between 0.0 and 1.0 is located in the colour map and the
+final colour is calculated by a linear interpolation (a smooth blending)
+between the two colours in the located range.
+
+\section{More Complex Data Types -- {\tt DECLARE}}
+
+\keyindex{DECLARE}\index{declarations}\index{data types!complex}
+The data types used to describe the objects in the world are a bit more
+difficult to describe.  To make this task easier, the program allows users to
+describe these types in two ways.  The first way is to define it from first
+principles specifying all of the required parameters.  The second way allows
+the user to define an object as a modification of another object (the other
+object is usually defined from first principles but is much simpler).  Here's
+how it works.
+
+You can use the term {\tt DECLARE} to declare a type of object with a
+certain description.\index{declarations!first principles}
+The object is not included in the world but is
+made known to the program that it can be used as a ``prototype'' for
+defining other objects by the name given, as this basic example shows:
+\begin{verbatim}
+     DECLARE Sphere = QUADRIC  { First principles definition }
+          <1.0 1.0 1.0>        {   of a sphere               }
+          <0.0 0.0 0.0>
+          <0.0 0.0 0.0>
+          -1.0
+     END_QUADRIC
+\end{verbatim}
+To then reference the declaration elsewhere in your source file or in another
+included one, and to actually include the object in the world, you would
+define the object using the {\tt DECLARE}'d object's name, like this:
+\begin{verbatim}
+     OBJECT
+          QUADRIC Sphere
+               SCALE <20.0 20.0 20.0>
+          END_QUADRIC
+          TEXTURE
+             COLOUR White
+             AMBIENT 0.2
+             DIFFUSE 0.8
+          END_TEXTURE
+     END_OBJECT
+\end{verbatim}
+
+The real power of declaration becomes apparent when you declare
+several primitive types of objects and then define an object with
+several component shapes, using either {\tt COMPOSITE} methods or the
+CSG methods {\tt INTERSECTION}, {\tt UNION}, or {\tt DIFFERENCE}.
+\index{declarations!composite}
+Also, using the {\tt DECLARE} keyword to pre-define textures can make
+several objects share a texture without the need for each object to
+store a duplicate copy of the same texture, for more efficient memory
+usage.\index{declarations!textures}
+For example:
+\begin{verbatim}
+     DECLARE Dull TEXTURE  { A Basic, Boring Texture }
+          AMBIENT 0.3
+          DIFFUSE 0.7
+     END_TEXTURE
+     OBJECT         { A Hot dog in a Hamburger Bun (?) }
+          UNION
+               QUADRIC Sphere
+                    SCALE <20.0, 10.0, 20.0>
+            TEXTURE Dull END_TEXTURE
+               END_QUADRIC
+               QUADRIC Cylinder_X
+                    SCALE <40.0, 20.0, 20.0>
+            TEXTURE Dull END_TEXTURE
+               END_QUADRIC
+          END_UNION
+     END_OBJECT
+\end{verbatim}
+
+Layered textures, new to version 2.10, may also be {\tt DECLARE}'d.
+The {\tt DECLARE} mechanism keeps looking for successive {\tt TEXTURE}
+definitions and will layer them onto the same texture until another
+{\tt DECLARE} (or any other statement except another {\tt TEXTURE}) is
+encountered in the input data file.\index{declarations!layered textures}
+For example:
+\begin{verbatim}
+     DECLARE Cloud_Wood TEXTURE  { This is the cloudy wood }
+       Dark_Wood                 {   texture used earlier. }
+       TURBULENCE 0.0
+       SCALE <0.2 0.2 0.2>
+       PHONG 1.0
+     END_TEXTURE
+     TEXTURE            { This is layered onto the wood }
+       TURBULENCE 0.5   {   texture just defined.       }
+       BOZO
+       COLOUR_MAP
+         { transparent to transparent }
+         [0.0 0.6 COLOUR RED 1.0 GREEN 1.0 BLUE 1.0 ALPHA 1.0
+                  COLOUR RED 1.0 GREEN 1.0 BLUE 1.0 ALPHA 1.0]
+         { transparent to white }
+         [0.6 0.8 COLOUR RED 1.0 GREEN 1.0 BLUE 1.0 ALPHA 1.0
+                  COLOUR RED 1.0 GREEN 1.0 BLUE 1.0]
+         { white to grey }
+         [0.8 1.001 COLOUR RED 1.0 GREEN 1.0 BLUE 1.0
+                    COLOUR RED 0.8 GREEN 0.8 BLUE 0.8]
+       END_COLOUR_MAP
+       SCALE <0.4  0.08  0.4>
+     END_TEXTURE
+
+    DECLARE (etc.) { Ends the layered definition. }
+\end{verbatim}
+
+\section{Viewpoint}
+
+\index{viewpoint}
+The viewpoint tells the ray tracer the location and orientation of the
+camera.  The viewpoint is described by four vectors --
+{\tt LOCATION},\index{viewpoint!location}\keyindex{LOCATION}
+{\tt DIRECTION},\index{viewpoint!direction}\keyindex{DIRECTION}
+{\tt UP},\index{viewpoint!up}\keyindex{UP} and
+{\tt RIGHT}.\index{viewpoint!right}\keyindex{RIGHT}
+Location determines where the camera is
+located.  Direction determines the direction that the camera is
+pointed.  Up determines the ``up'' direction of the camera.  Right
+determines the direction to the right of the camera.
+
+A first principle's declaration of a viewpoint would look like this:
+\index{viewpoint!first principles declaration of}
+\begin{verbatim}
+     VIEWPOINT
+          LOCATION < 0.0  0.0  0.0>
+          DIRECTION < 0.0  0.0  1.0>
+          UP < 0.0  1.0  0.0 >
+          RIGHT < 1.0  0.0  0.0>
+     END_VIEWPOINT
+\end{verbatim}
+This format becomes cumbersome, however, because the vectors must be hand
+calculated.  This is especially difficult when the vectors are not lined up
+with the X, Y, and Z axes as they are in the above example. To make it easier
+to define the viewpoint, you can define one viewpoint, then modify the
+description.\index{viewpoint!transformation of}  For example,
+\begin{verbatim}
+     VIEWPOINT
+          LOCATION < 0.0  0.0  0.0>
+          DIRECTION < 0.0  0.0  1.0>
+          UP < 0.0  1.0  0.0 >
+          RIGHT < 1.0  0.0  0.0 >
+          TRANSLATE < 5.0  3.0  4.0 >
+          ROTATE < 30.0  60.0  30.0 >
+     END_VIEWPOINT
+\end{verbatim}
+In this example, the viewpoint is created, then translated to another point in
+space and rotated by 30 degrees about the X axis, 60 degrees about the Y axis,
+and 30 degrees about the Z axis.
+
+Unfortunately, even this is somewhat cumbersome.  So, in version 2.0 and
+above, you can now specify two more parameters:
+
+\begin{verse}
+{\tt SKY} {\em vector} \\
+{\tt LOOK_AT} {\em vector}
+\end{verse}
+
+The {\tt SKY}\keyindex{SKY} keyword tells the viewpoint where the sky
+is. It tries
+to keep the camera's {\tt UP} direction aligned as closely as possible
+to the sky. The {\tt LOOK_AT}\keyindex{LOOK_AT} keyword tells the
+camera to look at a
+specific point.  The camera is rotated as required to point directly
+at that point.  By changing the {\tt SKY} vector, you can twist the
+camera while still looking at the same point.
+
+One subtle point: the {\tt SKY} direction is not necessarily the same
+as the {\tt UP} direction. For example, consider the situation shown
+in Figure \ref{skyup}.
+\begin{figure}[htbp]
+\begin{centering}
+\input{skyup}
+\caption{The Difference between {\tt SKY} and {\tt UP}}
+\label{skyup}
+\end{centering}
+\end{figure}
+If you said that the camera C has a {\tt SKY} direction S and is
+looking at O, the up direction will not point to the sky.  {\tt UP}'s
+like putting an antenna on your camera.  If you point the camera
+downwards, the antenna will no longer point straight up.
+
+The {\tt RIGHT} vector, as was mentioned previously, controls the
+aspect ratio of the screen display.  It also determines the
+``handedness'' of the coordinate system in use.  A normal
+(left-handed)\index{left-handed coordinate system}%
+\index{coordinate system!left-handed}
+ {\tt RIGHT} statement would be:
+\begin{verbatim}
+     RIGHT < 1.3333 0.0 0.0 >
+\end{verbatim}
+To use a right-handed coordinate system,\index{right-handed coordinate system}%
+\index{coordinate system!right-handed}
+as is popular in some CAD
+programs and some other ray-tracers, such as Sculpt for the Amiga, use
+a {\tt RIGHT} like:
+\begin{verbatim}
+     RIGHT < -1.3333 0.0 0.0 >
+\end{verbatim}
+Some CAD systems also have the peculiar conception that the Z axis is
+the ``elevation'' and is the {\tt UP} direction instead of the Y axis.
+\index{elevation, and {\tt UP} vector}
+If this is the case you will want to change your {\tt UP} statement
+to:
+\begin{verbatim}
+     UP < 0.0 0.0 1.0 >
+\end{verbatim}
+Note that a pinhole camera model\index{pinhole camera model}%
+\index{camera model}
+is used, so no focus or depth-of-field
+effects are supported at this time.  For more detailed information on the
+camera model, see the section ``How it All Works''.
+
+\section{Fog}
+
+\index{fog}
+Version 2.0 of the raytracer includes the ability to render fog.  To add fog
+to a scene, place the following declaration outside of any object definitions:
+\begin{verse}
+{\tt FOG} \\
+{\tt\ \ \ \ \ COLOUR  {\em colour} \{ the fog colour \}}\\
+{\tt\ \ \ \ \ 200.0   \{ the fog distance \}} \\
+{\tt END_FOG}
+\end{verse}
+
+The fog to colour ratio is calculated as
+$1 - e^{-depth / distance}$,
+so at depth 0, the colour is pure (1.0)
+with no fog (0.0).  At the fog distance, you'll get 63% of the colour
+from the object's colour and 37% from the fog colour.
+
+\section{Shapes}
+
+Shapes describe the shape of an object without mentioning any surface
+characteristics like colour, surface lighting and reflectivity.
+
+\subsection{Quadric Shapes}
+
+The most general shape used by this system is called a Quadric Surface.
+Quadric Surfaces can produce shapes like spheres, cones, cylinders,
+paraboloids (dish shapes), and hyperboloids (saddle or hourglass
+shapes).
+
+The easiest way to define these shapes is to include the standard file
+{\tt shapes.dat}\index{shapes.dat@{\tt shapes.dat} definitions file} into
+your program and to transform these shapes
+(using {\tt TRANSLATE}, {\tt ROTATE}, and {\tt SCALE}) into the ones
+you want.  To be complete, however, I will describe the mathematical
+principles behind quadric surfaces.  Those who are not interested in
+the mathematical details can skip to the next section.
+
+The quadric\index{quadric surfaces!definition of}
+\begin{verbatim}
+     QUADRIC
+         <A B C>
+         <D E F>
+         <G H I>
+         J
+     END_QUADRIC
+\end{verbatim}
+defines a surface in three dimensions which satisfies the following
+equation
+\begin{displaymath}
+{\tt A}x^{2} + {\tt B}y^{2} + {\tt C}z^{2} +
+{\tt D}xy + {\tt E}xz + {\tt F}yz + {\tt G}x + {\tt H}y +{\tt I}z +
+{\tt J} = 0
+\end{displaymath}
+Did you really want to know that?  I didn't think so.
+
+Different values of {\tt A}, {\tt B}, {\tt C}, \ldots {\tt J} will
+give different shapes.  So, if you take any three dimensional point
+and use its x, y, and z coordinates in the above equation, the answer
+will be 0 if the point is on the surface of the object.  The answer
+will be negative if the point is inside the object and positive if the
+point is outside the object.  Here are some examples:
+\begin{eqnarray*}
+x^{2} + y^{2} + z^{2} - 1 & = & 0 \mbox{\ -- Sphere} \\
+x^{2} + y^{2} - 1 & = & 0 \mbox{\ -- Cylinder along Z axis} \\
+x^{2} + y^{2} - z^{2} & = & 0 \mbox{\ -- Cone along Z axis}
+\end{eqnarray*}
+
+\subsection{Quadric surfaces the easy way}
+
+Now that doesn't sound so hard, does it?  Well, actually, it does.
+Only the hard-core graphics fanatic would define his objects using the
+{\tt QUADRIC} definition directly.  Even I don't do it that way and I
+know how it works.\footnote{Well, at least I worked it out once
+or twice.}
+
+Fortunately, there is an easier way.
+\index{quadric surfaces!transformation of}
+The file {\tt shapes.dat} already
+includes the definitions of many quadric surfaces.  They are centered
+about the origin {\tt < 0 0 0 >} and have a radius of 1.  To use them,
+you can define shapes simply as follows:
+\begin{verbatim}
+     INCLUDE "colors.dat"
+     INCLUDE "shapes.dat"   { important for this example }
+     INCLUDE "textures.dat"
+
+     QUADRIC
+          Cylinder_X
+          SCALE < 50.0  50.0  50.0 >
+          ROTATE < 30.0  10.0  45.0 >
+          TRANSLATE < 2.0  5.0  6.0 >
+     END_QUADRIC
+\end{verbatim}
+You may have as many transformation lines (scale, rotate, and translate) as
+you like in any order.  Usually, however, it's easiest to do a scale first,
+one or more rotations, then finally a translation.  Otherwise, the results may
+not be what you expect. (The transformations always transform the object about
+the origin.  If you have a sphere at the origin and you translate it then
+rotate it, the rotation will spin the sphere around the origin like planets
+about the sun).\index{transformations!order of}
+
+\subsection{Spheres}
+
+\index{sphere!primitive}\keyindex{SPHERE}
+Since spheres are so common in ray traced graphics, a {\tt SPHERE}
+primitive has been added to the system.  This primitive will render
+much more quickly than the corresponding quadric shape.  The syntax
+is:
+\begin{verbatim}
+     SPHERE  <center> radius END_SPHERE
+\end{verbatim}
+
+You can also add translations, rotations, and scaling to the sphere. For
+example, the following two objects are identical:
+\begin{verbatim}
+     OBJECT
+          SPHERE  < 0.0 25.0 0.0 > 10.0 END_SPHERE
+          TEXTURE
+             COLOR Blue
+             AMBIENT 0.3
+             DIFFUSE 0.7
+          END_TEXTURE
+     END_OBJECT
+\end{verbatim}
+
+\begin{verbatim}
+     OBJECT
+          SPHERE  < 0.0 0.0 0.0 > 1.0
+               TRANSLATE <0.0  25.0  0.0> 
+               SCALE <10.0  10.0  10.0>
+          END_SPHERE
+          TEXTURE
+             COLOR Blue
+             AMBIENT 0.3
+             DIFFUSE 0.7
+          END_TEXTURE
+     END_OBJECT
+\end{verbatim}
+Note that Spheres may only be scaled uniformly.\index{sphere!scaling of}
+You cannot use:
+\begin{verbatim}
+     SCALE <10.0 5.0 2.0>
+\end{verbatim}
+on a sphere.  If you need oblate (flattened) spheroids, use a scaled quadric
+``Sphere'' shape instead, as it can be arbitrarily scaled in any dimension.
+
+\subsection{Planes}
+
+\index{plane!primitive}\keyindex{PLANE}
+Another primitive provided to speed up the raytracing is the {\tt PLANE}.
+This is a flat infinite plane.  To declare a {\tt PLANE}, you
+specify the direction of the surface normal to the plane (the {\tt UP}
+direction) and the distance from the origin of the plane to the
+world's origin. As with spheres, you can translate, rotate, and scale
+planes.  Examples:
+\begin{verbatim}
+     { plane in the X-Z axes 10 units below the origin. }
+     PLANE <0.0  1.0  0.0> -10.0 END_PLANE
+     { plane in the X-Z axes 10 units above the origin. }
+     PLANE <0.0  1.0  0.0>  10.0 END_PLANE
+     { plane in the X-Y axes 10 units behind the origin.}
+     PLANE <0.0  0.0  1.0>  -10.0 END_PLANE
+\end{verbatim}
+
+\subsection{Triangles}
+
+\index{triangle!primitive}\keyindex{TRIANGLE}
+In order to make more complex objects than the class of quadrics will
+permit, a new primitive shape for triangles has been added.  There are
+two different types of triangles:  flat shaded triangles and smooth
+shaded (Phong) triangles.
+
+Flat shaded triangles are defined by listing the three vertices of the 
+triangle.  For example:
+\begin{verbatim}
+     TRIANGLE  < 0.0   20.0  0.0>
+               < 20.0  0.0   0.0>
+               <-20.0  0.0   0.0>
+     END_TRIANGLE
+\end{verbatim}
+
+The smooth shaded triangles
+\index{triangle!smooth shaded primitive}\keyindex{SMOOTH_TRIANGLE}
+use Phong Normal Interpolation to calculate the
+surface normal for the triangle.  This makes the triangle appear to be a
+smooth curved surface.  In order to define a smooth triangle, however, you
+must supply not only the vertices, but also the surface normals at those
+vertices.  For example:
+\begin{verbatim}
+     SMOOTH_TRIANGLE
+          {      points             surface normals     }
+          <  0.0  30.0  0.0 >    <0.0   0.7071   -0.7071>
+          < 40.0 -20.0  0.0 >    <0.0   -0.8664  -0.5   >
+          <-50.0 -30.0  0.0 >    <0.0   -0.5     -0.8664>
+     END_SMOOTH_TRIANGLE
+\end{verbatim}
+As with the other shapes, triangles can be translated, rotated, and scaled.
+
+\begin{description}
+\item[Note 1:] Triangles cannot be used in CSG {\tt INTERSECTION}
+or {\tt DIFFERENCE} types (described next) since triangles have no
+clear ``inside''.\index{triangle!and CSG}
+The CSG {\tt UNION} type works acceptably, but with no real
+difference from a {\tt COMPOSITE} made up of {\tt TRIANGLE} primitives.
+\item[Note 2:] To be honest, I don't expect mere mortals to work out
+the surface normals of triangles.\index{triangle!surface normals}
+Ideally, you'd have another program
+generate them for you.  See the section on ``Common Questions and
+Answers'' for details on how this might be done.
+\end{description}
+
+\subsection{Quartic Surfaces}
+
+\index{quartic surfaces}\index{surfaces!quartic}
+% use the underscores as usual
+\catcode`\_=8
+Quartic surfaces are 4th order surfaces, and can be used to describe a large
+class of shapes including the torus, the lemniscate, etc.  The general
+equation for a quartic equation in three variables is (hold onto your hat):
+\begin{displaymath}
+\begin{array}{cccccccccccccl}
+a_{00}x^{4}      & + & a_{01}x^{3}y  & + &
+a_{02}x^{3}z     & + & a_{03}x^{3}   & + &
+a_{04}x^{2}y^{2} & + \\
+a_{05}x^{2}yz    & + & a_{06}x^{2}y  & + &
+a_{07}x^{2}z^{2} & + & a_{08}x^{2}z  & + &
+a_{09}x^{2}      & + \\
+a_{10}xy^{3}     & + & a_{11}xy^{2}z & + &
+a_{12}xy^{2}     & + & a_{13}xyz^{2} & + &
+a_{14}xyz        & + \\
+a_{15}xy         & + & a_{16}xz^{3}  & + &
+a_{17}xz^{2}     & + & a_{18}xz      & + &
+a_{19}x          & + \\
+a_{20}y^{4}      & + & a_{21}y^{3z}  & + &
+a_{22}y^{3}      & + & a_{23}y^{2}z^{2} & + &
+a_{24}y^{2}z     & + \\
+a_{25}y^{2}      & + & a_{26}yz^{3}  & + &
+a_{27}yz^{2}     & + & a_{28}yz      & + &
+a_{29}y          & + \\
+a_{30}z^{4}      & + & a_{31}z^{3}   & + &
+a_{32}z^{2}      & + & a_{33}z       & + &
+a_{34}           & = 0
+\end{array}
+\end{displaymath}
+To declare a quartic surface requires that each of the coefficients
+($a_{00} \ldots a_{34}$) be placed in order into a single long vector
+of 35 terms.
+
+As an example, the following object declaration is for a torus having major
+radius 6.3 minor radius 3.5 (Making the maximum width just under 10).
+\index{quartic surfaces!first principles declaration of}
+\keyindex{QUARTIC}
+\begin{verbatim}
+     { Torus with major radius sqrt(40),
+                  minor radius sqrt(12) }
+     OBJECT
+      QUARTIC
+      < 1.0   0.0   0.0    0.0     2.0
+        0.0   0.0   2.0    0.0  -104.0
+        0.0   0.0   0.0    0.0     0.0
+        0.0   0.0   0.0    0.0     0.0
+        1.0   0.0   0.0    2.0     0.0
+       56.0   0.0   0.0    0.0     0.0
+        1.0   0.0 -104.0   0.0   784.0 >
+      END_QUARTIC
+      BOUNDED_BY
+       SPHERE <0 0 0> 10 END_SPHERE
+      END_BOUND
+     END_OBJECT
+\end{verbatim}
+The code to calculate Ray-Surface intersections for quartics is somewhat
+slower than that for intersections with quadric surfaces.  Benchmarks on
+a stock 8Mhz AT (with FPU) give results of around 1400 solutions per second
+for 2nd order equations (quadrics) vs 444 per second for 3rd order equations
+and 123 per second for 4th order equations (quartics).  So clever use of
+bounding shapes can make a big difference in processing
+time.\index{processing speed}\index{speed|see{processing speed}}
+
+While a great deal of time has gone into debugging the code for handling
+quartic surfaces, I know for a fact that there are bad combinations of
+surface equations and lighting orientations that cause math errors (crash).
+If this happens to you, as the joke goes, ``then don't do that.''
+\index{errors}\index{quartic surfaces!math errors in}
+
+Here are some surfaces to get you started. A Torus can be represented
+by the equation:\index{torus}
+\begin{eqnarray*}
+& & x^{4} + y^{4} + z^{4} + 2x^{2}y^{2} + 2x^{2}z^{2} + 2y^{2}z^{2} - \\
+& & 2(r_{0}^{2} + r_{1}^{2})x^{2}
++ 2(r_{0}^{2} - r_{1}^{2})y^{2}
+- 2(r_{0}^{2} - r_{1}^{2})z^{2} + \\
+& & \hspace*{2.2in}(r_{0}^{2} - r_{1}^{2})^{2} = 0 
+\end{eqnarray*}
+
+Where $r_{0}$ is the ``major'' radius of the torus -- the distance
+from the hole of the donut to the middle of the ring of the donut, and
+$r_{1}$ is the ``minor'' radius of the torus -- the distance from the
+middle of the ring of the donut to the outer surface (see Figure
+\ref{torus}).
+\begin{figure}[htbp]
+\begin{centering}
+\input{torus}
+\caption{Radii of a torus}
+\label{torus}
+\end{centering}
+\end{figure}
+Described
+another way, a torus is a circle that is revolved around an axis.  The
+major radius is the distance from the axis to the center of the
+circle, the minor radius is the radius of the circle.
+
+Note that scaling surfaces like a torus scales everything. In order to change
+the relationship between the size of the hole and the size of the ring, it is
+necessary to enter new coefficients for the torus.\index{torus!scaling}
+
+The only coefficients of the 35 that need to be filled in
+are:
+\begin{displaymath}
+\begin{array}{ccccccl}
+a_{00} & = & a_{20} & = & a_{30} & = & 1 \\
+a_{04} & = & a_{07} & = & a_{23} & = & 2 \\
+a_{09} & = & a_{32} &   &        & = & -2(r_{0}^{2} + r_{1}^{2}) \\
+a_{25} &   &        &   &        & = & 2(r_{0}^{2} - r_{1}^{2}) \\
+a_{34} &   &        &   &        & = & 2(r_{0}^{2} - r_{1}^{2})^{2}
+\end{array}
+\end{displaymath}
+The torus can then be rotated and translated into position once its shape
+has been defined. See the file {\tt TORUS.DAT} for examples.
+
+A generalization of the lemniscate of Gerono can be represented by the
+equation:\index{lemniscate curve}
+\begin{displaymath}
+c^{2}x^{4} - a^{2}c^{2}x^{2} + y^{2} + z^{2} = 0
+\end{displaymath}
+where good start values are $a = 1.0$ and $c = 1.0$, giving the
+coefficients:
+\begin{displaymath}
+\begin{array}{ccccccl}
+a_{00} & = & a_{25} & = & a_{32} & = & 1 \\
+a_{09} &   &        &   &        & = & -1 \\
+\end{array}
+\end{displaymath}
+See the example file {\tt LEMNISCA.DAT} for a more complete example.
+
+A generalization of a piriform can be represented by the
+equation:\index{piriform curve}
+\begin{displaymath}
+-bc^{2}x^{4} - ac^{2}x^{3} + y^{2} + z^{2} = 0
+\end{displaymath}
+where good start values are $a = 4$, $b = -4$, $c = 1$, giving the
+coefficients
+\begin{displaymath}
+\begin{array}{ccccl}
+a_{00} &   &        & = & 4 \\
+a_{03} &   &        & = & -4 \\
+a_{25} & = & a_{32} & = & 1 \\
+\end{array}
+\end{displaymath}
+See the file {\tt PIRIFORM.DAT} for more on this\ldots
+% back to leaving the underscores as they are
+\catcode`\_=12
+
+There are really so many different quartic shapes, we can't even begin to
+list or describe them all.  If you are interested and mathematically inclied,
+an excellent reference book for curves and surfaces where you'll find more
+quartic shape formulas is:\index{Seggern@von Seggern, David}
+\begin{verse}
+{\em The CRC Handbook of Mathematical Curves and Surfaces} \\
+David von Seggern, CRC Press, 1990.
+\end{verse}
+
+\subsection{Constructive Solid Geometry}
+
+\index{constructive solid geometry}\index{CSG|see{constructive solid geometry}}
+This ray tracer supports Constructive Solid Geometry (CSG) in order to
+make the object definition abilities more powerful.  Constructive
+Solid Geometry allows you to define shapes which are the union,
+intersection, or difference of other shapes.  Unions superimpose the
+two shapes.  This has the same effect as defining two separate
+objects, but is simpler to create and/or manipulate.  Intersections
+define the space where the two surfaces meet.  Differences allow you
+to cut one object out of another.
+
+CSG Intersections, Unions, and Differences can consist of two or more
+shapes.
+\index{constructive solid geometry!union}\keyindex{UNION}
+\index{constructive solid geometry!difference}\keyindex{DIFFERENCE}
+\index{constructive solid geometry!intersection}\keyindex{INTERSECTION}
+They are defined as follows:
+\begin{verbatim}
+     OBJECT
+          INTERSECTION
+               QUADRIC
+                    ...
+               END_QUADRIC
+
+               QUADRIC
+                    ...
+               END_QUADRIC
+
+               QUADRIC
+                    ...
+               END_QUADRIC
+          END_INTERSECTION
+          ...
+     END_OBJECT
+\end{verbatim}
+{\tt UNION} or {\tt DIFFERENCE} may be used instead of
+{\tt INTERSECTION}.  The order of the shapes doesn't matter except for the
+{\tt DIFFERENCE} shapes.  For CSG differences, the first shape is
+visible and the remaining shapes are cut out of the first (in reverse
+order from version 1.2 {\tt DIFFERENCE}'s).
+
+Constructive solid geometry shapes may be translated, rotated, or scaled in
+the same way as a Quadric surface.  The quadric surfaces making up the CSG
+object may be individually translated, rotated, and scaled as
+well.\index{constructive solid geometry!transforming}
+
+When using CSG, it is often useful to invert an shape so that it's
+inside-out.  The {\tt INVERSE}\keyindex{INVERSE} keyword can be
+used to do this for any
+{\tt SPHERE}, {\tt PLANE}, or {\tt QUADRIC}.  When {\tt INVERSE} is
+used, the ``inside'' of the object is flipped to become the
+``outside''.  For Planes\index{plane!inside and outside}, ``inside'' is
+defined to be in the opposite direction from the ``normal'' or ``up''
+direction.
+
+Note that performing an {\tt INTERSECTION} between an shape and some
+other {\tt INVERSE} shapes is the same as performing a
+{\tt DIFFERENCE}.  In fact, the {\tt DIFFERENCE} is actually implemented in
+this way in the code.
+
+\section{Objects}
+
+\index{objects}
+There is more to defining an object than just its shape.  You must tell the
+ray tracer about the properties of the object like surface colour, alpha,
+reflectivity, refractivity, the index of refraction, and so on.  This may be
+done by specifying it in the shape or the object.  Generally, an
+{\tt OBJECT}\keyindex{OBJECT}
+definition will contain two pieces of information about an object: First, what
+shape it is, and second, what it's looks like (on the surface and throughout).
+A typical object definition looks something like this:
+\begin{verbatim}
+     OBJECT
+          QUADRIC Sphere
+               TRANSLATE < 40.0 40.0 60.0 >
+          END_QUADRIC
+
+          TEXTURE
+             AMBIENT  0.3
+             DIFFUSE   0.7
+             REFLECTION  0.3
+             REFRACTION  0.3
+             IOR 1.05
+             COLOUR RED 1.0 GREEN 1.0 BLUE 1.0 ALPHA 0.5
+          END_TEXTURE
+     END_OBJECT
+\end{verbatim}
+
+\noindent
+The following keywords may be used when defining objects:
+
+\subsection{{\tt COLOUR}}
+
+\index{objects!colour of}\keyindex{COLOUR}
+When used on an {\tt OBJECT} (i.e., not inside a {\tt TEXTURE} block),
+the {\tt COLOUR} keyword determines what colour to use for a low
+quality rendering when {\tt TEXTURE}'s are ignored.  See the
+{\tt +q}\optindex{q}
+option for details on setting the low-quality option. Examples:
+\begin{verbatim}
+     COLOUR RED 1.0  BLUE 0.4
+\end{verbatim}
+or
+\begin{verbatim}
+     DECLARE Yellow = COLOUR RED 1.0 GREEN 1.0
+          ...
+     COLOUR Yellow
+\end{verbatim}
+
+\subsection{{\tt TRANSLATE}, {\tt ROTATE}, and {\tt SCALE}}
+
+\index{objects!transforming}
+Objects can be translated, rotated, and scaled just like surfaces.
+If\index{objects!transforming!and textures}
+an object is transformed, all textures attached to the object at that
+time are transformed as well.  This means that if you have a
+{\tt TRANSLATE}\keyindex{TRANSLATE},
+{\tt ROTATE}\keyindex{ROTATE},
+or {\tt SCALE}\keyindex{SCALE} before a {\tt TEXTURE}, the
+texture will {\em not} be transformed.  If the {\tt SCALE},
+{\tt TRANSLATE}, or {\tt ROTATE} is after the {\tt TEXTURE}, the texture
+will be transformed.
+
+\subsection{{\tt LIGHT_SOURCE}}
+
+\index{objects!as light sources|see{light sources}}
+If the {\tt LIGHT_SOURCE}\keyindex{LIGHT_SOURCE} keyword is used
+in the definition of an
+object, then the object is included in the list of light sources.  It
+can light objects and produce shadows.  (You should also specify the
+{\tt COLOUR} of the light source, it will usually be ``White'').
+Light sources have a peculiar
+restriction:\index{light sources!position restriction}
+The light source {\em must}
+be {\tt TRANSLATE}'d to its final position in the scene, so the normal
+way to define a light source is a sphere or quadric centered about the
+origin, then {\tt TRANSLATE}'d to where desired in the final scene.
+For example:
+\begin{verbatim}
+     OBJECT
+          { we use a sphere, could use a quartic, too }
+          SPHERE <0.0  0.0  0.0> 2.0 END_SPHERE
+          TRANSLATE <100.0  120.0  40.0>
+
+          LIGHT_SOURCE
+          COLOUR White     { colour of the light emitted }
+          TEXTURE
+             COLOUR White  { surface colour of the sphere }
+             AMBIENT 1.0
+             DIFFUSE 0.0
+          END_TEXTURE
+     END_OBJECT
+\end{verbatim}
+
+\begin{description}
+\item[Note:] \index{light sources!colour}You {\em must}
+specify the colour of the light outside the
+{\tt TEXTURE} block. This allows the renderer to quickly determine the
+colour of the light source without having to plow through the
+textures.  Any colour information inside the {\tt TEXTURE} block is
+used to render the light source object itself if it is visible in the
+scene.  The subtle difference between the actual sphere object and the
+light ray emanation point (the center of the sphere) is why
+{\tt LIGHT_SOURCE}'s must be defined at {\tt <0,0,0>} then
+{\tt TRANSLATE}'d to where you want them.  It ties together and
+{\tt TRANSLATE}'s both the object itself and the light ray source point to
+the specified point in the scene.  Usually, light sources have an
+{\tt AMBIENT} value of 1.0 and a {\tt DIFFUSE} of 0.0, but this is not a
+hard and fast rule.
+\end{description}
+
+\section{Texture}
+
+\index{textures}
+The texture feature is an experiment into functionally based modelling.  This
+feature allows you to assign colouring schemes to objects.  Many procedural
+surface textures are provided, and by using different colour maps with them,
+nearly infinite permutations are possible.  For example, you can make some
+object look like wood or marble, etc.  In DKBTrace, any parameter that changes
+the appearance of the surface {\em must} be put into a
+{\tt TEXTURE}\keyindex{TEXTURE} block.
+
+The basic {\tt TEXTURE} syntax is as follows:
+\begin{verbatim}
+     TEXTURE
+          0.05
+          WOOD
+          TURBULENCE 0.2
+          TRANSLATE < 1.0 2.0 3.0 >
+          ROTATE < 0.0 10.0 40.0 >
+          SCALE < 10.0 10.0 10.0 >
+     END_TEXTURE
+\end{verbatim}
+Transformations are optional.  They allow you to transform the texture
+independent of the object itself.  If you are doing animation, then the
+transformations should be the same as the object transformations so that the
+texture follows the object through 3-D space.\index{textures!transforming}
+
+The\index{textures!randomness}
+floating-point value given immediately following the texture
+keyword is an optional ``texture randomness'' value, which causes a
+minor random scattering of calculated colour values and produces a
+sort of ``dithered'' appearance.  Note this is {\bf bad, bad, bad} for
+animations!!  This is the {\em only} ``truly random'' thing in all of
+DKB, and will produce a most annoying flicker of flying pixels on any
+textures animated with a ``randomness'' value used.
+
+Instead\index{textures!types} of using
+{\tt WOOD},\keyindex{WOOD}\index{textures!coloring!wood} you may use
+{\tt MARBLE},\keyindex{MARBLE}\index{textures!coloring!marbled}
+{\tt BOZO}\keyindex{BOZO},
+{\tt CHECKER}\keyindex{CHECKER}, or a handful of other interesting
+textures.  The
+{\tt WOOD} and {\tt MARBLE} textures are perturbed by a turbulence
+function.  This makes them look more random and irregular than they
+would normally appear.  The amount of turbulence\index{textures!turbulence}
+can be changed by the
+{\tt TURBULENCE}\keyindex{TURBULENCE} keyword followed by a number.
+Values from 0.1 to 0.3
+seem to give the best results.  The default is 0.0, or no turbulence.
+
+Note some of the textures given are coloration textures, such as
+{\tt MARBLE}, {\tt WOOD}, {\tt CHECKER}, {\tt GRANITE}, and {\tt AGATE}.
+These work with colour maps\index{textures!colour maps}, and have
+default ``colour maps'' that
+they resort to if none are given.  The rest of the textures available
+are ``surface perturbation'' textures, and do not directly affect the
+colour of the object, but rather the surface's apparent orientation in
+space.  Examples of these are {\tt WAVES}, {\tt RIPPLES}, {\tt DENTS},
+{\tt BUMPS}, and {\tt WRINKLES}.  Note\index{textures!combining} that
+any given texture may
+include up to two actual textures, one coloration and one surface
+perturbation choice per texture.  This would allow rippled wood, or
+dented granite combinations, etc., but, keep in mind that any texture
+transformations applied to one texture (i.e. {\tt TRANSLATE} or
+{\tt SCALE}) will also transform the other one in the same fashion.
+
+As of version 2.10, it is possible to create layered\index{textures!layered}
+textures. If you use more
+that one texture block, the raytracer will compute the colour of the last
+texture and if there's any transparency in the colour (i.e., any alpha), it
+will mix in some of the colour from the underlying
+textures.
+
+\begin{description}
+\item[Important Note:] As of version 2.10, the keywords in this
+following section {\em cannot} be used outside of a
+{\tt TEXTURE}-{\tt END_TEXTURE} structure. This is a change in the
+input language from prior versions.
+\end{description}
+
+\subsection{Object Surface Lighting Characteristics}
+
+The following object surface lighting characteristics are available.
+Each keyword should be followed by a value in the specified range.
+
+\subsubsection{{\tt AMBIENT}}
+
+\keyindex{AMBIENT}\index{objects!surface lighting!ambient}
+Ambient light is light that is scattered everywhere in the room.  An object
+lit only by ambient light will appear to have the same brightness over the
+entire surface.  The default value is very little ambient light (0.3).  The
+value can range from 0.0 to 1.0. 
+
+\subsubsection{{\tt DIFFUSE}}
+
+\keyindex{DIFFUSE}\index{objects!surface lighting!diffuse}
+Diffuse light is light coming from a light source that is scattered in all
+directions.  An object lit only by diffuse light looks like a rubber ball with
+a spot light shining on it.  The value can range from 0.0 to 1.0.  By default,
+there is mostly diffuse lighting (0.7).
+
+\subsubsection{{\tt BRILLIANCE}}
+
+\keyindex{BRILLIANCE}\index{objects!surface lighting!brilliance}
+Objects can be made to appear more metallic by increasing their brilliance.
+This controls the tightness of the basic diffuse illumination on objects and
+minorly adjusts the appearance of surface shininess.  The default value is
+1.0.  Higher values from 3.0 to about 10.0 can give objects a somewhat more
+shiny or metallic appearance.  This is best used in concert with either the
+{\tt SPECULAR}\keyindex{SPECULAR} or {\tt PHONG}\keyindex{PHONG} highlighting.
+
+\subsubsection{{\tt REFLECTION}}
+
+\keyindex{REFLECTION}\index{objects!surface lighting!reflection}
+By setting the reflection value to be non-zero, you can give the object a
+mirrored finish.  It will reflect all other objects in the room.  The value
+can range from 0.0 to 1.0.  By default there is no reflection. 
+
+\subsubsection{{\tt REFRACTION}}
+
+\keyindex{REFRACTION}\index{objects!surface lighting!refraction}
+By setting the refraction value to be non-zero, the object is made transparent.
+Light will be refracted through the object like a lens.  The value can be set
+between 0.0 and 1.0.  There is no refraction by default. 
+
+\begin{description}
+\item[Note 1:] New for
+2.10:\index{objects!surface lighting!refraction, and
+{\tt ALPHA}}\keyindex{ALPHA}
+In order to refraction to work properly, you must have
+some {\tt ALPHA} component in the surface colour.  In the places where the
+{\tt ALPHA} is high, the refracted light can get through.  In places where
+the {\tt ALPHA} is low, the refracted light is suppressed.  This is a
+change in the input language from prior versions.
+\item[Note 2:] The refracted light is filtered by (takes on) the
+surface colour.
+\item[Note 3:] In\index{objects!surface lighting!refraction, and {\tt IOR}}
+layered textures, the {\tt REFRACTION} and
+{\tt IOR} keywords {\em must} be in the
+last texture, otherwise they will not take effect.
+\item[Note 4:] If a texture has an {\tt ALPHA} component and no value
+for {\tt REFRACTION} was
+supplied, the renderer will simply transmit the ray through the
+surface with no bending.
+\end{description}
+
+\subsubsection{{\tt IOR}}
+
+\keyindex{IOR}\index{objects!surface lighting!index of refraction}
+If the object is refracting light, then the {\tt IOR} or ``index of
+refraction'' should be set.  This determines how dense the object is.
+A value of 1.0 will give no refraction.  The index of refraction for
+air is 1.0, water is 1.33, glass is 1.5, and diamond is 2.4.
+
+\subsubsection{{\tt PHONG}}
+
+\keyindex{PHONG}\index{objects!surface lighting!phong highlighting}
+Controls the amount of Phong Specular Reflection highlighting on the
+object.  Causes bright shiny spots on the object, the colour of the
+light source that is being reflected.  The size of the spot is defined
+by the value given for {\tt PHONGSIZE} below.  {\tt PHONG}'s value is
+typically from 0.0 to 1.0, where 1.0 causes complete saturation of the
+object's colour to the light source's colour at the brightest area
+(center) of the highlight.  There is no {\tt PHONG} highlighting given
+by default.
+
+\subsubsection{{\tt PHONGSIZE}}
+
+\keyindex{PHONGSIZE}\index{objects!surface lighting!phong highlighting}
+Controls the size of the {\tt PHONG} Highlight on the object, sort of
+an arbitrary ``glossiness'' factor.  Values range from 1.0 (Very Dull)
+to 100 (Highly Polished).  Default {\tt PHONGSIZE} is 40 (plastic?) if
+not specified.  This is simulating the fact that slightly reflective
+objects, especially metallic ones, have microscopic facets, some of
+which are facing in the mirror direction.  The more that are facing
+that way, the shinier the object appears, and the tighter the specular
+highlights become.  Phong measures the average of facets facing in the
+mirror direction from the light sources to the viewer.
+
+\subsubsection{{\tt SPECULAR}}
+
+\keyindex{SPECULAR}\index{objects!surface lighting!specular reflection}
+Very similar to {\tt PHONG} Specular Highlighting, but a better model
+is used for determining light ray/object intersection, so a more
+credible spreading of the highlights occur near the object horizons,
+supposedly.  {\tt PHONG} is thus included for mostly academic reasons,
+but try them both and you decide which you like better.  This effect
+is most obvious for light sources behind objects.  The size of the
+spot is defined by the value given for {\tt ROUGHNESS} below.  Like
+{\tt PHONG}, {\tt SPECULAR} values are typically from 0.0 to 1.0 for
+full saturation.  Default is no {\tt SPECULAR} highlighting.
+
+Note that Specular and Phong highlights are {\em not} mutually
+exclusive.  It is possible to specify both and they will both take
+effect.  Normally, however, you will only specify one or the other.
+
+\subsubsection{{\tt ROUGHNESS}}
+
+\keyindex{ROUGHNESS}\index{objects!surface lighting!specular reflection}
+Controls the size of the {\tt SPECULAR} Highlight on the object,
+relative to the object's ``roughness''.  Values range from 1.0 (Very
+Rough) to 0.001 (Very Smooth).  The default value, if not specified,
+is 0.05 (Plastic?).  The roughness or average directional distribution
+of the microfacets facing in the same direction as the perpendicular
+surface ``normal'' cause the most notable reflection of the highlight
+to the observer.
+
+
+\subsubsection{{\tt METALLIC}}
+
+\keyindex{METALLIC}\index{objects!surface lighting!metallic}
+This keyword indicates that the colour of the specular and phong
+hightlights will be the surface colour instead of the lightsource
+colour.  This creates a metallic appearance.  When using this feature,
+you should set {\tt AMBIENT} to about 0.5 and set {\tt DIFFUSE} to
+0.0. This keyword does not take a value.
+
+\subsection{Surface Colouring Textures}
+
+The first type of advanced procedural textures provided by DKBTrace
+are surface coloring textures. These affect the colour of an object.
+
+\subsubsection{{\tt CHECKER}}
+
+\keyindex{CHECKER}\index{textures!coloring!checkered}
+{\tt CHECKER} texturing gives a checker-board appearance.  This option
+works best on planes.  When using the {\tt CHECKER} texturing, you
+must specify two colours immediately following the word {\tt CHECKER}.
+These colours are the colours of alternate squares in the checker
+pattern.  The default orientation of the {\tt CHECKER} texture is on
+an X-Z plane (good for ground work, etc.) but to use it on an object
+which has mostly X-Y orientation (such as a sphere, for instance), you
+must {\tt ROTATE} the texture. To rotate the {\tt CHECKER} texture
+onto an X-Y plane:
+\begin{verbatim}
+     TEXTURE
+          CHECKER COLOUR White COLOUR Red
+          SCALE <10.0 10.0 10.0>
+          ROTATE <-90.0 0.0 0.0>   { now in the X-Y plane }
+     END_TEXTURE
+\end{verbatim}
+
+\subsubsection{{\tt CHECKER_TEXTURE}}
+
+\keyindex{CHECKER_TEXTURE}\index{textures!coloring!checkered}
+I've had many requests for a checker pattern to allow you to alternate
+between wood and marble or any other two textures.  So, in version
+2.10, I've added a texture called {\tt CHECKER_TEXTURE} that takes
+two textures instead of two colours.
+
+In order to support layered textures, I've made the syntax a bit more verbose
+than it would be otherwise.  The syntax is:
+\begin{verbatim}
+     TEXTURE
+        CHECKER_TEXTURE
+           TEXTURE ... texture ... END_TEXTURE
+           TEXTURE ... optional layers ... END_TEXTURE
+        TILE2
+           TEXTURE ... second texture ... END_TEXTURE
+           TEXTURE ... optional layers ... END_TEXTURE
+        END_CHECKER_TEXTURE
+        AMBIENT ...
+        DIFFUSE ...
+    END_TEXTURE
+\end{verbatim}
+Note that the textures in {\tt CHECKER_TEXTURE} only use the surface
+colouring texture information.  Information about {\tt AMBIENT},
+{\tt DIFFUSE}, {\tt REFLECTION}, etc.  and surface normal information
+({\tt WAVES}, {\tt RIPPLES}) are ignored inside the {\tt CHECKER_TEXTURE}.
+(Hey, what do you want for a 10 minute change?)
+
+\subsubsection{{\tt BOZO}}
+
+\keyindex{BOZO}\index{textures!coloring!noisy}
+{\tt BOZO} texture basically takes a noise function and maps it onto
+the surface of an object.  This ``noise'' is well-defined for every
+point in space.  If two points are close together, they will have
+noise values that are close together.  If they are far apart, their
+noise values will be fairly random relative to each other.
+
+As mentioned above, for coloration textures such as {\tt WOOD},
+{\tt MARBLE}, and {\tt BOZO}, etc., you may change the colouring scheme by
+using a colour map.\index{textures!colour maps}
+This map allows you to convert numbers from 0.0
+to 1.0 (which are generated by the ray tracer) into ranges of colours.
+For example, the default {\tt BOZO} colouring can be specified by:
+\begin{verbatim}
+     TEXTURE
+          BOZO
+          COLOUR_MAP
+               [0.0 0.4 COLOUR White COLOUR White]
+               [0.4 0.6 COLOUR Green COLOUR Green]
+               [0.6 0.8 COLOUR Blue COLOUR Blue]
+               [0.8 1.0 COLOUR Red COLOUR Red]
+          END_COLOUR_MAP
+     END_TEXTURE
+\end{verbatim}
+
+The easiest way to see how it works is to try it.  With a good choice of
+colours it produces some of the most realistic looking cloudscapes you have
+ever seen indoors!  Try a cloud color map such as:
+\begin{verbatim}
+     TEXTURE
+          BOZO
+          TURBULENCE 1.0    { A blustery day.  For a calmer }
+          COLOUR_MAP        {   one, try 0.2.                }
+               { blue to blue }
+               [0.0 0.5  COLOUR RED 0.5 GREEN 0.5 BLUE 1.0
+                         COLOUR RED 0.5 GREEN 0.5 BLUE 1.0]
+               { blue to white }
+               [0.5 0.6  COLOUR RED 0.5 GREEN 0.5 BLUE 1.0
+                         COLOUR RED 1.0 GREEN 1.0 BLUE 1.0]
+               { white to grey }
+               [0.6 1.001 COLOUR RED 1.0 GREEN 1.0 BLUE 1.0
+                          COLOUR RED 0.5 GREEN 0.5 BLUE 0.5]
+          END_COLOUR_MAP
+          SCALE <800.0 800.0 800.0>
+          TRANSLATE <200.0 400.0 100.0>
+     END_TEXTURE
+\end{verbatim}
+The color map above indicates that for small values of texture, use a sky blue
+color solidly until about halfway turbulent, then fade through to white on a
+fairly narrow range.  As the white clouds get more turbulent and solid towards
+the center, pull the color map toward grey to give them the appearance of
+holding water vapor (like typical clouds). 
+Check out {\tt sunset.dat} for a really neat (but slow) sky pattern
+using {\tt ALPHA}.\keyindex{ALPHA}
+
+\subsubsection{{\tt SPOTTED}}
+
+\keyindex{SPOTTED}\index{textures!coloring!spotted}
+Spotted texture is a sort of swirled random spotting of the colour of the
+object.  If you've ever seen a metal organ pipe up close you know about what
+it looks like (a galvanized garbage can is close). Play with this one, it
+might render a decent cloudscape during a very stormy day.  No extra
+keywords are required.  Should work with colour maps.  With small scaling
+values, looks like masonry or concrete.
+
+\subsubsection{{\tt AGATE}}
+
+\keyindex{AGATE}\index{textures!coloring!marbled}
+This texture is similar to {\tt MARBLE}, but uses a different turbulence
+function.  The {\tt TURBULENCE} keyword has no effect, and as such it
+is always very turbulent.\keyindex{TURBULENCE}
+
+\subsubsection{{\tt GRADIENT}}
+
+\keyindex{GRADIENT}\index{textures!coloring!gradient}
+This is a specialized texture that uses approximate local coordinates
+of an object to control colour map gradients.  This texture {\em only}
+works with colour maps (one {\em must} be given!) and has a special
+{\tt <X,Y,Z>} triple given after the {\tt GRADIENT} keyword, which
+specifies any (or all) axes to perform the gradient action on.
+Example: a Y gradient {\tt <0.0 1.0 0.0>} will give an ``altitude
+colour map'', along the Y axis.  Values given other than 0.0 are taken
+as 1.0.
+
+For smooth repeating gradients, you should use a ``circular'' colour map, that
+is, one in which the first colour value (0.0) is the same as the last one
+(1.001) so that it ``wraps around'' and will cause smooth repeating gradient
+patterns.  Scaling the texture is normally required to achieve the number of
+repeating shade cycles you want.  Transformation of the texture is useful to
+prevent a ``mirroring'' effect from either side of the central 0 axes.  Here is
+an example of a gradient texture that uses a sharp ``circular'' color mapped
+gradient rather than a smooth one, and uses both X and Y gradients to get a
+diagonally-oriented gradient.  It produces a dandy candy cane
+texture!\index{textures!coloring!candy cane}
+\begin{verbatim}
+     TEXTURE
+          GRADIENT < 1.0 1.0 0.0 >
+          COLOUR_MAP
+              [0.00 0.25  COLOUR RED 1.0 GREEN 0.0 BLUE 0.0
+                          COLOUR RED 1.0 GREEN 0.0 BLUE 0.0]
+              [0.25 0.75  COLOUR RED 1.0 GREEN 1.0 BLUE 1.0
+                          COLOUR RED 1.0 GREEN 1.0 BLUE 1.0]
+              [0.75 1.001 COLOUR RED 1.0 GREEN 0.0 BLUE 0.0
+                          COLOUR RED 1.0 GREEN 0.0 BLUE 0.0]
+          END_COLOUR_MAP
+          SCALE <30.0 30.0 30.0>
+          TRANSLATE <30.0 -30.0 0.0>
+     END_TEXTURE
+\end{verbatim}
+
+You may also specify a {\tt TURBULENCE}\keyindex{TURBULENCE}
+value with the gradient to give a more
+irregular colour gradient.  This may help to do neat things like fire or
+corona effects.
+
+\subsubsection{{\tt GRANITE}}
+
+\keyindex{GRANITE}\index{textures!coloring!granite}
+This texture uses a simple $1/f$ fractal noise function to give a pretty darn
+good grey granite texture.  Typically used with small scaling values (2.0 to
+5.0).  Also looks good with a little dithering (texture randomness).  Should
+work with colour maps, so try your hand at pink granite or alabaster! 
+
+\subsection{Surface Perturbation Textures}
+
+The other type of advanced procedural texture provided by DKBTrace are
+surface perturbation textures. These affect the 3D appearance of an
+object, rather than its colour directly. A surface perturbation
+texture can be used in conjunction with the above coloration textures.
+
+\subsubsection{{\tt RIPPLES}}
+
+\keyindex{RIPPLES}\index{textures!perturbation!rippled}
+{\tt RIPPLES} makes a surface look like ripples of water.  The
+{\tt RIPPLES} option requires a value to determine how deep the ripples
+are:
+\begin{verbatim}
+     TEXTURE
+          WOOD
+          RIPPLES 0.3
+          TRANSLATE < 1.0 2.0 3.0 >
+          ROTATE < 0.0 10.0 40.0 >
+          SCALE < 10.0 10.0 10.0 >
+     END_TEXTURE
+\end{verbatim}
+In this case, the {\tt WOOD}, {\tt MARBLE}, or {\tt BOZO}, etc.
+keywords are optional.  If a different colouring is specified
+({\tt WOOD}, {\tt MARBLE}, or {\tt BOZO}), then the
+{\tt COLOUR}\keyindex{COLOUR}%
+\index{textures!perturbation!{\tt COLOUR} ignored in}
+parameter is ignored (except for light sources where it gives the
+light colour or when rendering with a low {\tt -q}\optindex{q} option).
+
+\subsubsection{{\tt WAVES}}
+
+\keyindex{WAVES}\index{textures!perturbation!wavy}
+Another option that you may want to experiment with is called {\tt
+WAVES}.  This works in a similar way to {\tt RIPPLES} except that it
+makes waves with different frequencies.  The effect is to make waves
+that look more like deep ocean waves. (I haven't done much testing on
+{\tt WAVES}, so I can't guarantee that it works very well).
+
+\subsubsection{{\tt PHASE}}
+
+\keyindex{PHASE}\index{textures!perturbation!phase}
+Both {\tt WAVES} and {\tt RIPPLES} respond to a texturing option
+called {\tt PHASE}.  The {\tt PHASE} option allows you to create
+animations in which the water seems to move.  This is done by making
+the {\tt PHASE} increment slowly between frames.  The range from 0.0
+to 1.0 gives one complete cycle of a wave.
+
+\subsubsection{{\tt FREQUENCY}}
+
+\keyindex{FREQUENCY}\index{textures!perturbation!frequency}
+The {\tt WAVES} and {\tt RIPPLES} textures also respond to a keyword
+called {\tt FREQUENCY}.  If you increase the frequency of the waves,
+they get closer together.  If you decrease it, they get farther apart.
+
+
+\subsubsection{{\tt BUMPS}}
+
+\keyindex{BUMPS}\index{textures!perturbation!bumpy}
+Approximately the same turbulence function as
+{\tt SPOTTED}\keyindex{SPOTTED}, but uses
+the derived value to perturb the surface normal.  This gives the
+impression of a ``bumpy'' surface, random and irregular, sort of like
+an orange.  After the {\tt BUMPS} keyword, supply a single floating
+point value for the amount of surface perturbation.  Values typically
+range from 0.0 (No Bumps) to 1.0 (Extremely Bumpy).  Values beyond 1.0
+may do weird things.
+
+\subsubsection{{\tt DENTS}}
+
+\keyindex{DENTS}\index{textures!perturbation!dented}
+Interesting when used with
+{\tt METALLIC}\keyindex{METALLIC} textures, it gives impressions into
+the metal surface that
+look like dents.  A single value is supplied after the {\tt DENTS}
+keyword to indicate the amount of denting required.  Values range from
+0.0 (Showroom New) to 1.0 (Insurance Wreck).  Use larger values at
+your own risk.  Scale the texture to make the pitting more or less
+frequent.
+
+\subsubsection{{\tt WRINKLES}}
+
+\keyindex{WRINKLES}\index{textures!perturbation!wrinkled}
+This is sort of a 3-D (normal perturbing) {\tt GRANITE}\keyindex{GRANITE}.
+It uses a
+similar $1/f$ fractal noise function to perturb the surface normal in
+3-D space.  With {\tt ALPHA}\keyindex{ALPHA} values of greater than
+0.0, could look
+like wrinkled cellophane.  Requires a single value after the
+{\tt WRINKLES} keyword to indicate the amount of wrinkling desired.  Values
+from 0.0 (No Wrinkles) to 1.0 (Very Wrinkled) are typical.
+
+\subsection{{\tt IMAGEMAP}}
+
+\keyindex{IMAGEMAP}\index{image mapping}
+\index{textures!image mapped|see{image mapping}}
+This is a very special coloration texture that allows you to import a
+bitmapped file in ``dump'' format (the format output by the ray-tracer),
+IFF\index{IFF} format or Compuserve GIF\index{GIF} format and map that
+bitmap onto an object.  In the texture of an object, you must give the
+{\tt IMAGEMAP} keyword, the format, and a file name.  The syntax is:
+\begin{verse}
+{\tt IMAGEMAP {\em optional-gradient} DUMP "{\em filename\/}" {\em optional-}ONCE} \\
+{\tt IMAGEMAP {\em optional-gradient} IFF "{\em filename\/}" {\em optional-}ONCE} \\
+{\tt IMAGEMAP {\em optional-gradient} GIF "{\em filename\/}" {\em optional-}ONCE}
+\end{verse}
+The texture will then be mapped onto the object as a repeating
+pattern.  The optional
+{\tt ONCE}\keyindex{ONCE}\index{image mapping!and {\tt ONCE}} keyword
+places only one image onto the object
+instead of an infinitely repeating tiled pattern.  When {\tt ONCE} is
+used, the colour outside the mapped texture is set to transparent.
+You can use the layered textures to place other textures or colours
+below the image.
+
+In version 2.10 and up, you can specify the
+{\tt ALPHA}\keyindex{ALPHA}\index{image mapping!and {\tt ALPHA}}
+values for the
+colour registers of IFF\index{IFF} or GIF\index{GIF} pictures (at
+least for the modes that
+use colourmaps).  You can do this by putting the keyword {\tt ALPHA}
+immediately following the filename followed by the register value and
+transparency.  If the
+{\tt ALL}\keyindex{ALL}\index{image mapping!and {\tt ALL}} keyword
+is used instead of a register number, then all colours in that
+colourmap get that alpha value. For example:
+\begin{verbatim}
+     IMAGEMAP <1.0 -1.0 0.0> IFF "mypic.iff"
+         ALPHA ALL 0.0
+         ONCE
+\end{verbatim}
+or
+\begin{verbatim}
+     IMAGEMAP <1.0 -1.0 0.0> IFF "mypic.iff"
+         ALPHA 0   0.5
+         ALPHA 1   1.0
+         ALPHA 2   0.3
+         ONCE
+\end{verbatim}
+By default, the image is mapped onto the X-Y plane in the range (0.0,
+0.0) to (1.0, 1.0).  If you would like to change this default, you may
+use an optional gradient\index{image mapping!gradient}%
+\index{gradient|see{image mapping}} {\tt <x y z>} vector after the word
+{\tt IMAGEMAP}.  This vector indicates which axes are to be used as the $u$
+and $v$ (local surface X-Y) axes.  The vector should contain one
+positive number and one negative number to indicate the $u$ and $v$
+axes, respectively.  You\index{image mapping!transformation} may
+translate, rotate, and scale the texture
+to map it onto the object's surface as desired.  Here is an example:
+\begin{verbatim}
+     INCLUDE "shapes.data"
+     OBJECT
+          QUADRIC Plane_XY END_QUADRIC
+          TRANSLATE <0.0  -20.0  0.0>
+          TEXTURE
+               { make this texture use the x and z axes
+                 for the mapping.                       }
+               IMAGEMAP <1.0  0.0  -1.0> GIF "image.gif"
+               SCALE <40.0 40.0 40.0>
+          END_TEXTURE
+     END_OBJECT
+\end{verbatim}
+
+Filenames\index{image mapping!filenames}
+specified in the {\tt IMAGEMAP} statements will be searched
+for in the home (current) directory first, and if not found, will then
+be searched for in directories specified by any {\tt -l}\optindex{l}
+(library path) options active.  This would facilitate keeping all your
+imagemaps ({\tt .dis}, {\tt .gif} or {\tt .iff}) files in a
+``textures'' subdirectory, and giving an {\tt -l} option on the
+command line to where your library of imagemaps are.
+
+When I was bored with nothing to do, I decided that it would be neat
+to have turbulent texture maps.  So, I said -- ``What the hell!''  You
+can specify
+{\tt TURBULENCE}\keyindex{TURBULENCE}%
+\index{image mapping!and {\tt TURBULENCE}}
+with texture maps and it will perturb the
+image.  It may give some bizarre results.  Is this useful?  I dunno.
+It was easy to do so I did it.  Try it out and see what you get.
+
+\section{Composite Objects}
+
+\index{objects!composite}\keyindex{COMPOSITE}
+Often it's useful to combine several objects together to act as a whole.  A
+car, for example, consists of wheels, doors, a roof, etc.  A composite object
+allows you to combine all of these pieces into one object.  This has two
+advantages.  It makes it easier to move the object as a whole and it allows
+you to speed up the ray tracing by defining bounding shapes that contain the
+objects.  (Rays are first tested to see if they intersect the bounding shape.
+If not, the entire composite object is ignored).  Composite objects are
+defined as follows:
+\begin{verbatim}
+     COMPOSITE
+          OBJECT
+               ...
+          END_OBJECT
+          OBJECT
+               ...
+          END_OBJECT
+          ...
+          SCALE < 2.0 2.0 2.0 >
+          ROTATE < 30.0 45.0 160.0 >
+          TRANSLATE < 100.0 20.0 40.0 >
+     END_COMPOSITE
+\end{verbatim}
+Composite objects can contain other composite objects as well as regular
+objects. Composite\index{objects!composite!as light sources}%
+\index{light sources!composite objects}
+objects cannot be light sources (although any number of
+their components can).  This is because it is nearly impossible to determine
+the true ``center'' of the composite object, and our light sources are pinpoint
+ray sources from the center of the light source object, wherever that may be.
+
+\section{Bounding Shapes}
+
+\index{bounding shapes}
+Let's face it.  This program is no speed demon.  You can save yourself a lot
+of time, however, if you use bounding shapes around any complex objects.
+Bounding shapes tell the ray tracer that the object is totally enclosed by a
+simple shape.  When tracing rays, the ray is first tested against the simple
+bounding shape.  If it strikes the bounding shape, then the ray is further
+tested against the more complicated object inside.
+
+\begin{description}
+\item[Note:] Don't use bounding shapes instead of
+CSG\index{constructive solid geometry!and bounding shapes} to clip objects.
+You will not get the result you want.  For the raytracer to work
+properly, you must have the entire object inside the bounding shape.
+\end{description}
+
+To use bounding shapes, you simply include the following lines into the
+declaration of your {\tt OBJECT} or {\tt COMPOSITE}:
+\begin{verse}
+{\tt BOUNDED_BY} \\
+{\tt \ \ \ \ \ {\em shape}} \\
+{\tt END_BOUND}
+\end{verse}
+An example of a Bounding Shape is:
+\begin{verbatim}
+     OBJECT
+          INTERSECTION
+               SPHERE <0.0 0.0 0.0> 2.0 END_SPHERE
+               PLANE <0.0 1.0 0.0> 0.0 END_PLANE
+               PLANE <1.0 0.0 0.0> 0.0 END_PLANE
+          END_INTERSECTION
+          BOUNDED_BY
+               SPHERE <0.0 0.0 0.0> 2.0 END_SPHERE
+          END_BOUND
+     END_OBJECT
+\end{verbatim}
+The best bounding shape is a {\tt SPHERE}\keyindex{SPHERE} since
+this shape is highly optimized.\index{processing speed}
+Any shape may be used, however, if more convenient.

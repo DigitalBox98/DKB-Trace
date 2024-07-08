@@ -1,0 +1,66 @@
+ITERATIONS = 10
+RULES:
+    %1 = 0  $ -10       { Moves left hemisphere left       }
+    %2 = 0  $  10       { Moves right hemisphere right     }
+    %3 = 30 $  1        { Increases radius of inner sphere }
+    %4 = 0  $  0.1      { Increases GREEN on inner sphere  }
+    %5 = 1  $  -0.1     { Decreases BLUE on inner sphere   }
+END_RULES:
+
+SKELETON:
+
+    INCLUDE "shapes.dat"
+    INCLUDE "colors.dat"
+    INCLUDE "textures.dat"
+
+    VIEW_POINT
+       LOCATION <0.0  0.0  -100.0>
+       DIRECTION <0.0 0.0  1.0>
+       UP  <0.0  1.0  0.0>
+       RIGHT <1.33333 0.0 0.0>
+       LOOK_AT <0.0 0.0 0.0>
+    END_VIEW_POINT
+
+    { Light behind viewer postion (pseudo-ambient light) }
+    OBJECT
+       SPHERE <0.0  0.0  0.0>  2.0 END_SPHERE
+       TRANSLATE <2.0  2.0  -150.0>
+       TEXTURE
+           COLOUR White
+           AMBIENT 1.0
+           DIFFUSE 0.0
+       END_TEXTURE
+       LIGHT_SOURCE
+       COLOUR White
+    END_OBJECT
+
+    OBJECT
+        INTERSECTION { Left hemisphere }
+            SPHERE <0.0 0.0 0.0> 40.0 END_SPHERE
+            SPHERE <0.0 0.0 0.0> 38.0 INVERSE END_SPHERE
+            PLANE <1.0 0.0 0.0> 0.0 END_PLANE
+            TRANSLATE <%1  0.0 0.0> { Range 0 -> -100 Step 10 }
+        END_INTERSECTION
+        TEXTURE
+            COLOR Green
+        END_TEXTURE
+    END_OBJECT
+    OBJECT
+        INTERSECTION { Right hemisphere }
+            SPHERE <0.0 0.0 0.0> 40.0 END_SPHERE
+            SPHERE <0.0 0.0 0.0> 38.0 INVERSE END_SPHERE
+            PLANE <-1.0 0.0 0.0> 0.0 END_PLANE
+            TRANSLATE <%2 0.0 0.0> { Range 0 -> +100 Step 10 }
+        END_INTERSECTION
+        TEXTURE
+            COLOR Green   { Stays the same }
+        END_TEXTURE
+    END_OBJECT
+
+    OBJECT    { Inner sphere }
+        SPHERE <0.0 0.0 0.0> %3 END_SPHERE    { Radius range 30 -> 40 Step 1 }
+        TEXTURE
+            COLOR GREEN %4 BLUE %5  { Increase GREEN step 1, decrease BLUE Step 1 }
+        END_TEXTURE
+    END_OBJECT
+END_SKELETON:

@@ -1,0 +1,49 @@
+
+	 This program converts .FNT and .SET character set files into .DAT
+    files.  Each character is generated as a DECLAREd OBJECT. Included is
+    the font file format description.  I recommend bounding your text
+    strings since each character of each string has many objects.
+
+	 To quote a buddy on user code modifications "You brake it, you own
+    both halves".  If you make any enhancements, please add your notes to
+    this document (and please send a copy back to me via BBS).
+
+    I can be reached at YOU CAN CALL ME RAY RBBS (708) 358-5611.
+
+		    "Its my world and you're welcome to it".
+						Ken Koehler (2-18-91)
+
+
+Usage:	FONT2DAT [-123] filename[.fnt]	   Enclosed are the following files:
+       -0 = Generate pixels as Spheres	     FONT2DAT.BAS    QuickBASIC source
+       -1 = Generate pixels as Squares	     FONT2DAT.EXE    MS-DOS executable
+       -2 = Generate pixels as Dots	     FONT2DAT.DOC    This file
+       -3 = Generate pixels as Boxes	     ROMAN.FNT	     ROMAN font example
+       -M = Multiple chars/file <default>
+       -S = Single char/file
+
+Ex:	FONT2DAT -3 -S CYBER.SET"
+	Would create CYBER.Dnn files with box type pixels"
+	  where 'nn' is the hex ASCII character code."
+
+
+	 Applications notes:  Each character generated (regardless of
+    original resolution) is scaled to 10 units high.  This allows easy
+    interchange of fonts in a scene.  For example, you want to render fancy
+    hi-res 3D (boxes) CYBER text on a desert floor.  Use lo-res roman
+    spheres to make sure the placing is right.	If so, switch out the
+    DECLAREs and render the final version.
+
+	 The origin of the character is at its lower left, going toward the
+    positive X and Y.  The Z is in the center of the OBJECT.  Both the
+    spheres and boxes extend .5 in +Z and -Z RELATIVE TO THE ORIGINAL
+    RESOLUTION.  For example, a character 12 bits high will actually end up
+    (10/12)=0.83333 thick, therefore 0.41667 in the +Z and -Z.	This is
+    inconsistant due to the fact that you can't (wouldn't want to
+    anyway=gooney looking) scale a sphere unevenly.  At least spheres and
+    boxes of like resolution are consistant with each other (BFD).  If you
+    don't like this with the spheres, go strech a 'dot' (they are currently
+    0.01 thick).  If you don't like this in boxes, scale them out manually
+    (or adjust the code).  Just remember that QUADRIC spheres are more
+    expensive than the hardcoded spheres.
+

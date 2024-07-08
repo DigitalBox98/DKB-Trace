@@ -1,0 +1,49 @@
+
+         This program generates a DKB .DAT file containing a DECLAREd
+    diamond based on user defined variables.  Actually, it draws a whole scene
+    (light/view/floor, etc.). I got carried away. An outline of the diamond is
+    displayed in graphics mode.
+
+         To quote a buddy on user code modifications "You break it, you own
+    both halves".  If you make any enhancements, please add your notes to
+    this document (and please send a copy back to me via BBS).
+
+    I can be reached at YOU CAN CALL ME RAY RBBS (708) 358-5611.
+
+                    "Its my world and you're welcome to it".
+                                                Ken Koehler (3-31-91)
+
+    Updated to DKB 2.11 by Aaron A. Collins on 05/01/91.
+
+                    Enclosed are the following files:
+                      DIAMOND.BAS     QuickBASIC source
+                      DIAMOND.EXE     MS-DOS executable
+                      DIAMOND.DOC     This file
+
+
+                                                             Top Radius
+   Side View           Top View                             |<--->|
+ /------------\      /----------\                     /------------\  -\_Top
+/______________\   /              \             ___  /______._______\ -/ Hieght
+\              /  |                |       B D  /|\  \      ^       /.
+ \            /   |                |       o e   |    \  origin    / .
+  \          /    |                |       t p   |     \          /  .
+   \        /     |                |       t t   |      \        /   .
+    \      /       \              /        o h   |       \      /    .
+     \    /          \__________/          m     |        \    /     .
+      \  /                                      \|/        \  /      .
+       \/                                       ---         \/       .
+                                                            |<------>|
+                                                            Center Radius
+
+Number of sides          :      What it says. Example above has 8.
+Top Radius    from center:      See diagram.
+Top Height    from center:      See diagram.
+Center Radius from center:      See diagram.
+Bottom Depth  from center:      See diagram.
+
+
+
+         Applications notes: A picture paints a thousand words.
+                             This text drawing should be worth a few hundred.
+

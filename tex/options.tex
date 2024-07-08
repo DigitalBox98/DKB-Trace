@@ -1,0 +1,264 @@
+\chapter{Command Line Options}
+
+\newlength{\origitemsep}
+\setlength{\origitemsep}{\itemsep}
+\newcommand{\noitemsep}{\setlength{\itemsep}{-\parskip}}
+\newcommand{\doitemsep}{\setlength{\itemsep}{\origitemsep}}
+
+\index{command-line options}
+\index{options,command-line|see{command-line options}}
+This program is designed to be run from a command line.  The
+command-line options
+may be specified in any order.  Repeated options overwrite
+the previous values.  Options may also be specified in a file called
+{\tt trace.def}\index{trace.def@{\tt trace.def} startup file} or by
+the environment variable
+{\tt DKBOPT}.\index{DKBOPT@{\tt DKBOPT} environment variable}
+\begin{description}
+\item[{\tt -w{\em width}}] \optdefindex{w}{width of picture}Width
+of the picture in pixels. (On the Amiga, use 320 for full-sized pictures.)
+
+\item[{\tt -h{\em height}}] \optdefindex{h}{height of picture}Height
+of the picture in pixels. (On the Amiga, use 400 for full-sized pictures.)
+
+\item[{\tt +v}] \optdefindex{v}{verbosity}Verbose option.
+\noitemsep
+\item[{\tt -v}] Disable verbose option.
+\doitemsep
+
+In verbose mode, the scan line number is printed as each line is traced.
+
+\item[{\tt +f{\em x}}] \optdefindex{f}{output!file generation}Produce
+an output file.
+\noitemsep
+\item[{\tt -f}] Don't produce an output file.
+\doitemsep
+
+If the {\tt +f} option is used, the ray tracer will produce an output file
+of the picture.  This output file describes each pixel with 24 bits.
+Currently, three formats of output files are supported:
+\begin{itemize}
+\item[{\tt +fd}] Default -- Dump format (QRT-style).
+\noitemsep
+\item[{\tt +fr}] Raw format -- three files for R, G and B.
+\item[{\tt +ft}] Uncompressed Targa-24 format.
+\doitemsep
+\end{itemize}
+Normally, a post-processor is required to create the final finished
+image from the data file.  See the section on ``Displaying the Images''
+for details.
+
+\item[{\tt +d{\em x}}] \optdefindex{d}{displaying!while tracing}Display
+the picture while tracing.
+\noitemsep
+\item[{\tt -d}] Don't display the picture while tracing.
+\doitemsep
+
+If the {\tt +d} option is used, then the picture will be displayed while the
+program performs the ray tracing.  On most systems, this picture is
+not as good as the one created by the post-processor because it does
+not try to make optimum choices for the colour registers.
+
+Depending on the system, a letter may follow the {\tt +d} option to specify
+the graphics mode to use.
+\begin{description}
+\item[All systems:] \mbox{}
+\begin{itemize}
+\item[{\tt +d}] Default Format (same as {\tt +d0})
+\end{itemize}
+\item[Amiga:] \mbox{}
+\begin{itemize}
+\item[{\tt +d0}] Ham format
+\item[{\tt +dE}] Ham-E format
+\end{itemize}
+\item[IBM:] \mbox{}
+\begin{itemize}
+\item[{\tt +d0}] Autodetect (S)VGA type
+\item[{\tt +d1}] Standard VGA 320x200
+\item[{\tt +d2}] Simulated SVGA 360x480
+\item[{\tt +d3}] Tseng Labs 3000 SVGA 640x480
+\item[{\tt +d4}] Tseng Labs 4000 SVGA 640x480
+\item[{\tt +d5}] AT\&T VDC600 SVGA 640x400
+\item[{\tt +d6}] Oak Technologies SVGA 640x480
+\item[{\tt +d7}] Video 7 SVGA 640x480
+\item[{\tt +d8}] Video 7 Vega (Cirrus) VGA 360x480
+\item[{\tt +d9}] Paradise SVGA 640x480
+\item[{\tt +dA}] Ahead Systems Ver. A SVGA 640x480
+\item[{\tt +dB}] Ahead Systems Ver. B SVGA 640x480
+\item[{\tt +dC}] Chips \& Technologies SVGA 640x480
+\item[{\tt +dD}] ATI SGVA 640x480
+\item[{\tt +dE}] Everex SVGA 640x480
+\item[{\tt +dF}] Trident SVGA 640x480
+\item[{\tt +dG}] VESA Standard SVGA Adapter 640x480
+\end{itemize}
+\end{description}
+
+\item[{\tt +p}] \optdefindex{p}{wait for prompt}Wait for prompt
+(IBM: beep and pause) before quitting.
+\noitemsep
+\item[{\tt -p}] Finish without waiting.
+\doitemsep
+
+The {\tt +p} option makes the program wait for a carriage return before
+exitting (and closing the graphics screen).  This gives you time to
+admire the final picture before destroying it.
+
+\item[{\tt -i{\em filename}}] \optdefindex{i}{input filename}%
+\optdefindex{i}{filename!input}Set the input filename.
+\noitemsep
+\item[{\tt -o{\em filename}}] \optdefindex{o}{output!filename}%
+\optdefindex{o}{filename!output}Set the output filename.
+\doitemsep
+
+If your input file is not {\tt Object.dat}, then you can use {\tt -i}
+to set the filename.  The default output filename will be
+{\tt data.dis} for dump mode, {\tt data.red}, {\tt data.grn} or
+{\tt data.blu} for raw mode, and {\tt data.tga} for Targa mode.
+If you want a different output file name, use the {\tt -o} option.
+(On IBM's, the default extensions for raw mode are {\tt .r8},
+{\tt .g8}, and {\tt .b8} to conform to PICLAB's ``raw'' format.)
+
+\item[{\tt +a{\em level}}] \optdefindex{a}{anti-aliasing}Anti-alias --
+{\em level\/} is an optional tolerance level (default 0.3).
+\noitemsep
+\item[{\tt -a}] Don't anti-alias.
+\doitemsep
+
+The {\tt +a} option enables adaptive anti-aliasing.  The number
+after the {\tt +a} option determines the threshold for the
+anti-aliasing.  If the colour of a pixel differs from its neighbor
+(to the left or above) by more than the threshold, then the
+pixel is subdivided and super-sampled.
+
+If the anti-aliasing threshold is 0.0, then every pixel is
+supersampled.  If the threshold is 1.0, then no anti-aliasing
+is done.  Good values seem to be around 0.2 to 0.4.
+
+The super-samples are jittered to introduce noise and make the
+pictures look better.  Note that the jittering "noise" is non-
+random and repeatable in nature, based on an object's 3-D
+orientation in space.  Thus, it's okay to use anti-aliasing for
+animation sequences, as the anti-aliased pixels won't vary and
+flicker annoyingly from frame to frame.
+
+\item[{\tt +x}] \optdefindex{x}{exiting early}Allow early exit by
+hitting any key.\hfill[IBM only]
+\noitemsep
+\item[{\tt -x}] Lock in trace until finished.\hfill[IBM only]
+\doitemsep
+
+On the IBM, the {\tt -x} option disables the ability to abort the
+trace by hitting a key.  If you are unusually clumsy or have
+cats that stomp on your keyboard, you
+may want to use it.  If you are writing a file, the system
+will recognize {\tt Ctrl-C} at the end of line if the system {\tt BREAK}
+is {\tt ON}.  If you aren't writing a file, you won't be able to
+abort the trace until it's done.
+
+This option was meant for big, long late-nite traces that take
+all night (or longer!), and you don't want them interrupted by
+anything less important than a natural disaster such as hurricane,
+fire, flood, famine, etc.
+
+\item[{\tt -b{\em size}}] \optdefindex{b}{output!buffer size}%
+\optdefindex{b}{buffer size}Use an output file buffer of
+{\em size} kilobytes.
+
+The {\tt -b} option allows you to assign large buffers to the output
+file.  This reduces the amount of time spent writing to the
+disk and prevents unnecessary wear (especially for floppies). 
+If this parameter is zero (the default), then as each scanline is finished,
+the line is written to the file and the file is flushed.  On
+most systems, this operation insures that the file is written
+to the disk so that in the event of a system crash or other
+catastrophic event, at least part of the picture has been
+stored properly on disk.
+
+\item[{\tt +c}] \optdefindex{c}{continue rendering}Continue Rendering.
+
+If, for some reason, you abort a raytrace while it's in progress
+or if you used the {\tt -e} option (below) to end the raytrace
+prematurely, you can use the {\tt +c} option to continue the raytrace
+when you get back to it.  This option reads in the previously
+generated output file, displays the image to date on the screen,
+then proceeds with the raytracing.  In many cases, this feature
+can save you a lot of rendering time when things go wrong.\footnote{If
+you want to impress your friends with the speed of your
+computer, take an image you've already rendered and use {\tt +c}
+in the command-line.  It renders {\em real} fast that way!}
+
+\item[{\tt -s{\em line}}] \optdefindex{s}{starting scan line}%
+\optdefindex{s}{scan line!starting}Start tracing at line number {\em line}.
+\noitemsep
+\item[{\tt -e{\em line}}] \optdefindex{e}{ending scan line}%
+\optdefindex{e}{scan line!ending}End tracing at line number {\em line}.
+\doitemsep
+
+The {\tt -s} option allows you to start rendering an image starting
+from a specific scan line.  This is useful for rendering part
+of a scene to see what it looks like without having to render
+the entire scene from the top.  Alternatively, you can render
+groups of scanlines on different systems and concatenate them
+later.  WARNING: If you are merging output files from different
+systems, make sure that the random number generators are the
+same.  If not, the textures from one will not blend in with the
+textures from the other.  There is an example of a standard
+ANSI-C random number generator in the file {\tt IBM.C}.  Cut it
+out and paste it into your machine-specific {\tt .c} file if you
+plan to try ``distributed processing'' and are not sure if you
+need this standardization.
+
+The {\tt -s} option has no effect when continuing a raytrace using
+the {\tt +c} option.  The renderer will figure out where to restart.
+
+\item[{\tt -q{\em level}}] \optdefindex{q}{quality}%
+\optdefindex{q}{rendering quality}Rendering quality.
+
+The {\tt -q} option allows you to specify the image rendering quality,
+for quickly rendering images for testing.  The {\em level} parameter can
+range from 0 to 9.  The values correspond to the following
+quality levels:
+
+\begin{itemize}
+\item[0,1:] Just show colours.  Ambient lighting only.
+\noitemsep
+\item[2,3:] Show Diffuse and Ambient light.
+\item[4,5:] Render shadows.
+\item[6,7:] Create surface textures.
+\item[8,9:] Compute reflected, refracted, and transmitted rays.
+\end{itemize}
+\doitemsep
+
+The default is {\tt -q9} (maximum quality) if not specified.
+
+\item[{\tt -l{\em path}}] \optdefindex{l}{library path}The {\tt -l}
+option may be used to specify a ``library'' pathname to
+look into for data files to include or for images.  Up to 10
+{\tt -l} options may be used to specify a search path.  The home
+(current) directory will be searched first followed by the
+indicated library directories in order.
+
+\item[{\tt +z}] \optdefindex{z}{debugging}The {\tt +z} option is
+an undocumented feature.
+You will not see any references to it in this or any other
+documentation file for DKBTrace.  In fact, no other section of the
+document will even admit that it was mentioned here. If you really
+want to know what it does, then you will have to look into the source
+code ({\tt trace.c}) and read the comment just above the {\tt +z}
+option that says
+``Turn on debugging print statements.''  The full purpose of this option
+will, therefore, be left as an exercise for the reader, but believe me
+-- it's nothing terribly exciting.\footnote{For those people who run
+the raytracer on super-fast systems and want to slow it down, you may
+try this option.}
+\end{description}
+
+You may specify the default parameters by modifying the file
+{\tt trace.def}\index{trace.def@{\tt trace.def} startup file}
+which contains the parameters in the above format. 
+This filename contains a complete command line as though you 
+had typed it in, and is processed before any options supplied
+on the command line are recognized. You may also set the environment
+variable
+{\tt DKBOPT}\index{DKBOPT@{\tt DKBOPT} environment variable}
+to the desired set of command-line parameters.

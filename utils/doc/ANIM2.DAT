@@ -1,0 +1,63 @@
+ITERATIONS = 30
+RULES:
+    %1 = 20  $ .5       { Move sphere up from ground level,elevate LOOK_AT}
+    %2 = 0  $  1        { Rotates the viewer around the sphere }
+END_RULES:
+
+
+SKELETON:
+
+INCLUDE "shapes.dat"
+INCLUDE "colors.dat"
+INCLUDE "textures.dat"
+
+VIEW_POINT
+   LOCATION <0.0  20.0  -100.0>
+   DIRECTION <0.0 0.0  1.0>
+   UP  <0.0  1.0  0.0>
+   RIGHT <1.33333 0.0 0.0>
+   LOOK_AT <0.0 %1  0.0>        { Watch the ball }
+   ROTATE <0.0 %2 0.0>          { Spin around the ball }
+END_VIEW_POINT
+
+
+OBJECT
+   SPHERE <0.0  0.0  0.0>  2.0 END_SPHERE
+   TRANSLATE <100.0  200.0  -500.0>
+   TEXTURE
+       COLOUR White
+       AMBIENT 1.0
+       DIFFUSE 0.0
+   END_TEXTURE
+   LIGHT_SOURCE
+   COLOUR White
+END_OBJECT
+
+OBJECT { Sky sphere }
+    SPHERE <0.0 0.0 0.0> 1000.0 END_SPHERE
+    TEXTURE
+        COLOR Blue
+        AMBIENT 1.0
+        DIFFUSE 0.0
+    END_TEXTURE
+END_OBJECT
+
+OBJECT   { Floor }
+    PLANE <0.0 1.0 0.0> 0.0 END_PLANE
+    TEXTURE
+        CHECKER COLOR White COLOR Black
+        SCALE <10.0 10.0 10.0>
+    END_TEXTURE
+    COLOR White
+END_OBJECT
+
+OBJECT
+    SPHERE <0.0  %1  0.0>  20.0 END_SPHERE
+    TEXTURE
+        Mirror
+        COLOR Red
+    END_TEXTURE
+    COLOR Red
+END_OBJECT
+
+END_SKELETON:

@@ -1,0 +1,29 @@
+\chapter{System Overview}
+
+This program is a ray tracer written completely in C.  It supports
+arbitrary quadric surfaces (spheres, ellipsoids, cones, cylinders,
+planes, etc.), constructive solid geometry, and various shading models
+(reflection, refraction, marble, wood, and many others).  It also has
+special-case code to handle spheres, planes, triangles, and smooth
+triangles.  By using these special primitives, the rendering can be
+done much more quickly than by using the more general quadrics.  In
+order to create pictures with this program, you must describe the
+objects in the world.  This description is a text file called
+{\em filename}.{\tt data}, and {\em filename\/} defaults to {\tt object}
+if not specified.  Normally, such files are difficult to write and to
+read.  In order to make this task easier, the program contains a
+parser to read the data file.  It allows the user to easily create
+complex worlds from simple components.  Since the parser allows
+include files, the user may put the object descriptions into different
+files and combine them all into one final image.
+
+This document is organized as follows. The first chapters describe how
+to run DKBTrace, the various options you can give to alter its
+behaviour, and provide a ``walk-through'' tutorial to get you familiar
+with its concepts and features. The largest chapter then specifies the
+scene description language in detail, and serves as a reference manual
+for the system. Subsequent chapters discuss issues related to
+DKBTrace, such as common questions (with answers), compiling and
+porting the system, utilities for use with DKBTrace, and system
+history and compatibility notes. Finally, a short bibliography of
+ray-tracing references and an index are provided.

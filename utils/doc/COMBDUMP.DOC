@@ -1,0 +1,70 @@
+combinedump                                                       combinedump
+
+NAME
+        combinedump
+
+SYNOPSIS
+        combinedump [-l<lcol>] [-r<rcol>] [-c<compensations>] <lfile> <rfile>
+                    <outputfile>
+
+DESCRIPTION
+        Combinedump combines two DKB/QRT dump format 24 bit picture files to
+        one 3D stereopicture for red-green or red-blue 3D-glasses.
+
+OPTIONS
+        -l      Colour for left eye, '-lr', '-lg' or '-lb' for red, green or
+                blue. Default is red.
+
+        -r      Like '-l' but for right eye. Default is green.
+
+        -c      Compensation values. If your monitor's red is visible
+                trough your green glass. You can give a compensation value
+                to be added to green colour if there is no red.
+
+                There are 4 different compensation values, top left, top
+                right, bottom left and bottom right. You can find out the
+                right values by any painting program:
+
+                Use a black background and draw a red and green box (if your
+                3D-glasses are red-green ones). Now if you can see the red
+                box trough the green glass, add some green colour to the
+                background until the box is as invisible as possible.
+                The amount of green colour added (in the scale of 0 to 255)
+                is now the bottom right compensation. (if the green colour
+                was on the right hand side in your glasses).
+
+                Then if you can see the green box trough red glass, add red
+                to the background to get the bottom left compensation.
+
+                Now, change your background colour to yellow (full green and
+                full red). If you can see the green box through the green
+                glass, remove some green from background until green is
+                invisible. The amount removed is now the top right
+                compensation.
+
+                You can get the top left compensation in a similiar way.
+
+                To give the compensation values to program, add them after
+                '-c' switch separated by 't', 'b', 'l' and 'r' characters.
+
+                For example the default values can be given by following
+                combination:
+
+                -ctl34r0bl85r51
+
+INPUTS
+        Two pictures, one for left and one for right eye in DKBTrace's dump
+        format. When creating pictures, use same object descriptions, but
+        slightly different viewpoint.
+
+OUTPUTS
+        Combined picture created by gray-scaling input pictures and
+        combining them with different colours. File is written to standard
+        output, so it's better to redirect somewhere.
+
+Comments and bug reports to:
+
+        Ville Saari                     vsaari@niksula.hut.fi
+        PL 10
+        00210 Helsinki
+        FINLAND

@@ -1,0 +1,46 @@
+ANIM is a simple incrementer program to assist in creating DKB script files
+for animation.  It reads in a data file containing an iteration count, a
+rules section, and a skeleton code section.  As with much of the DKB utility
+code that I have uploaded, this was written for my own use, not for use by
+others, consequently, it does not have extensive error checking or fancy
+parsing.  I make no apologies, just a warning to have patience and let me
+know if something doesn't seem to work right.  If anyone wants to implement
+this idea in C for portability, please feel free, just give me a little line
+of credit as the originator.  I have my vanities.
+
+The files that should be included in this ZIP package:
+    ANIMA.EXE    The runtime version of the scriptor program.
+    ANIMA.BAS    QuickBASIC source code.
+    AMINA.INC    Include file for ANIMA.BAS.
+    ANIMA.DOC    What you are reading now.
+    ANIM1.DAT    A sample animation data file.
+    ANIM2.DAT    Another sample data file.
+
+    NOTE: The name of the animation data file should be only 4 or 5 characters
+    long, since the output files are sequentially numbered, using the root
+    of the data file as the root of the output (ie: ANIMA.DAT will create
+    files ANIMA001.DAT ANIMA002.DAT, etc.)
+
+Sample data file with comments:
+
+ITERATIONS = 30             How many frames to create
+
+
+Parameter #, starting value, step rate
+( The $ is a token meaning "STEP" to the parser)
+RULES:                      Defines rules for the Replaceable paramters
+    %1 = -50 $ 4            Begin at -50 and increment by 4 for each iteration
+    %2 = -50 $ -4           Begin at -50 and decrement by -1 for each iteration
+    %3 = 255 $ -1           Begin at 255 and decrement by -1 for each iteration
+    %4 = 1  $ 1
+    %5 = 1 $ 5              Up to 9 replaceble parameters allowed
+END_RULES:
+
+SKELETON:                   This is the template code for the animation.
+    OBJECT
+       SPHERE <%1  -30.0  1.0 > 2.0 END_SPHERE
+       COLOR RED %3 GREEN %4 BLUE %5
+       TEXTURE Shiny END_TEXTURE
+    END_OBJECT
+END_SKELETON:
+

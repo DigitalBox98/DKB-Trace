@@ -1,0 +1,421 @@
+\chapter{How it All Works (or How to Get What You Want)}
+
+The information in this section is designed for people who are reasonably
+familiar with the raytracer and want more information on how things work so
+they can push it to its limits.  You probably don't need this level of detail
+to make interesting data files, but if you suddenly get confused about
+something the program did, this section may help you figure it out.
+
+\section{Viewpoints}
+
+\index{viewpoint}
+Viewpoints can be completely defined by four vectors.  The
+{\tt LOCATION}\keyindex{LOCATION} is easy.  That's where the camera
+is. The {\tt DIRECTION}\keyindex{DIRECTION}
+is a vector that starts at the {\tt LOCATION} and points to the center
+of a window.  The {\tt UP}\keyindex{UP} vector starts at the center
+of the window and points to the center of the top edge.  The
+{\tt RIGHT}\keyindex{RIGHT} vector
+starts at the center of the window and points to the center of the
+right edge. These vectors are illustrated in Figure \ref{vectors}.
+ 
+\begin{figure}[htbp]
+\begin{centering}
+\input{vectors}
+\caption{Viewpoint definition vectors}
+\label{vectors}
+\end{centering}
+\end{figure}
+
+The window is then divided up according to the resolution you specified and
+rays are fired through the pixels out into the world.  For an eye ray,
+therefore, the equation of the ray is:
+\begin{displaymath}
+{\tt LOCATION} + t ({\tt DIRECTION} + ((height - y) \cdot {\tt UP}) +
+(x \cdot {\tt RIGHT}))
+\end{displaymath}
+where $t$ is a parameter that determines the distance from the eye to the
+object being tested.  The\index{coordinate system!inverted Y} Y
+coordinate is inverted by subtracting it from height because most
+graphics systems put $(0,0)$ in the top left corner of the screen.
+
+This viewpoint model is very flexible.  It allows you to use
+left-handed or right-handed coordinate systems.  It also doesn't
+require that the {\tt DIRECTION}, {\tt UP}, and {\tt RIGHT} vectors be
+mutually orthogonal.  If you want, you can distort the camera to get
+really bizarre results.
+
+Once the basic four vectors are specified, it's possible to use the
+{\tt SKY}\keyindex{SKY} and {\tt LOOK_AT}\keyindex{LOOK_AT} vectors
+to point the camera.  You must
+specify the {\tt SKY} vector first, but let me describe the
+{\tt LOOK_AT} vector first.  {\tt LOOK_AT} tells the camera to rotate in
+such a way that the {\tt LOOK_AT} point appears in the center of the
+screen.  To do this, the camera first turns in the left-to-right
+direction (longitude in Earth coordinates) until it's lined up with
+the {\tt LOOK_AT} point.  It then turns in the up/down direction (latitude
+in Earth coordinates) until it's looking at the desired point.
+
+Ok, now we're looking at the proper point.  What else do we have to
+specify?  If you're looking at a point, you can still turn your camera
+sideways and still be looking at the same spot.  This it the
+orientation that the {\tt SKY} direction determines.  The camera will
+try to position itself so that the camera's {\tt UP} direction lines
+up as closely as possible to the {\tt SKY} direction.
+
+Put another way -- in airplane terms, the {\tt LOOK_AT} vector
+determines your heading (north, south, east, or west), and your pitch
+(climbing or descending).  The {\tt SKY} vector determines your
+banking angle.
+
+\section{Ray-Object Intersections}
+
+For every pixel on the screen, the raytracer fires at least one ray through
+that pixel into the world to see what it hits.  For each hit (well, almost),
+it calculates rays to each of the light sources to see if that point is
+shadowed from that light source.  For reflecting objects, a reflected ray is
+traced.  For refracting objects, a refracting ray is traced.  That all adds up
+to a lot of rays.
+
+Every ray is tested against every object in the world to see if the ray hits
+that object. This is what slows down the raytracer.  You can make things
+easier by using simple bounding shapes on your
+objects\index{processing speed}.
+
+Fortunately, all ray-object intersections for all shapes in DKBTrace can be
+solved by a simple quadratic equation.  This is why {\tt QUADRIC}s are used in
+DKBTrace.  Solving for things like B-Splines, Bezier Splines, NURBS, Tori,
+etc. is a lot more complicated.  That's why I haven't implemented primitives
+for these shapes.
+
+\section{Transparency and Refraction}
+
+This section gets really complicated because of the way transparency and
+refraction are implemented.  If you don't really care, skip to the next
+section. If you don't mind slogging through this and getting confused, then
+read on -- you've been warned.
+
+The way that transparency and refraction work has changed slightly from
+previous versions.  Now, transparency and refraction work together instead of
+separately.
+
+First\index{light!reflected vs. filtered}, let me distinguish between
+reflected light and filtered light.  Suppose
+you painted a table with patches of colour.  You then took some red sand and
+sprinkled it on top of the various colours.  The red sand will tint the
+colours red, but you will still see some of the original colour.  If, instead,
+you took a sheet of red plexiglass and put it on top of the table, all you
+could see would be shades of red.  That's because the plexiglass filter
+{\em only} allows the red colour to show through.
+
+In DKBTrace, the layered textures\index{textures!layered} work like
+the red sand -- the colours on top mix with the underlying colours
+depending on the density ({\tt ALPHA}\keyindex{ALPHA}) of the
+distribution.
+
+Refraction\index{refraction}, however, works like a filter.  The
+surface colour determines that
+colours of light are allowed to pass from the inside of the object to the
+outside, and vice versa.  Here are some filter colours:
+\begin{verbatim}
+   { a red filter }
+   RED 1.0  GREEN 0.0  BLUE 0.0   ALPHA 1.0
+   { a clear glass }
+   RED 1.0  GREEN 1.0  BLUE 1.0   ALPHA 1.0
+   { a dark filter - this will appear black }
+   RED 0.0  GREEN 0.0  BLUE 0.0   ALPHA 1.0
+\end{verbatim}
+Now, consider the following layered textures:\keyindex{REFRACTION}
+\begin{verbatim}
+   TEXTURE COLOUR Green ALPHA 0.6 END_TEXTURE
+   TEXTURE COLOUR Yellow ALPHA 0.3 REFRACTION 0.5 END_TEXTURE
+\end{verbatim}
+Keep in mind that the last texture is on top.\footnote{In layered
+textures, only the {\tt REFRACTION} component of the {\em last} entry
+has any effect.}
+The colour you get is calculated as shown in Figure \ref{layers}.
+\begin{figure}[htbp]
+\begin{centering}
+\input{layers}
+\caption{Layered color calculation}
+\label{layers}
+\end{centering}
+\end{figure}
+The top texture layer supplies some fraction of the light that
+reflects off the surface of the object.  If the {\tt ALPHA} was
+non-zero, it allows the lower textures to supply the remainder.  If,
+after all the textures are processed, there's still some fraction left
+over, it is applied to the light that's refracted through the object.
+
+This algorithm probably doesn't coincide with reality, but neither
+does the rest of the raytracer, so I'm not terribly concerned about
+it.
+
+\section{Textures, Noise, and Turbulence}
+
+\index{textures}
+If there's one thing that DKBTrace is known for, it's textures.  Here's how
+they really work.  If you want some good reading material, check out ``An Image
+Synthesizer'' by Ken Perlin in the SIGGRAPH '84 Conference Proceedings.
+
+Let's start with a marble texture\index{textures!marbled}.  Real marble
+is created when different colours of sediments are laid down one on
+top of another and compressed to form solid rock.
+
+For example, take the simple block of marble shown in Figure \ref{marble}.
+\begin{figure}[htbp]
+\begin{centering}
+\input{marble}
+\caption{Marble texture}
+\label{marble}
+\end{centering}
+\end{figure}
+If you carve a shape put of this block of marble, you will get red and white
+bands across it.
+
+Now, consider wood\index{textures!wood}.  The rings in wood are
+created when the tree grows a new outer shell every year.  Hence, we
+have concentric cylinders of colours, as shown in Figure \ref{log}.
+\begin{figure}[htbp]
+\begin{centering}
+\input{log}
+\caption{Wood texture}
+\label{log}
+\end{centering}
+\end{figure}
+Cutting a shape out of a piece of wood will tend to give you rings of colour.
+
+Now, this is fine, but the textures are still a bit boring.  For the next
+step, we blend the colours together to create a nice smooth transition.  This
+makes the texture look a bit better.  The problem, though, is that it's too
+regular -- real marble and wood aren't so perfect.
+
+Before we make our wood and marble look any better, let's look at how we make
+noise.  Noise\index{noise} (in raytracing) is sort of like a random
+number generator, but
+it has the following properties:
+\begin{enumerate}
+\item It's defined over 3D space i.e., it takes x, y, and z and returns the
+noise value there.
+\item If two points are far apart, the noise values at those points are
+relatively random.
+\item If two points are close together, the noise values at those points are
+close to each other.
+\end{enumerate}
+You can visualize this as having a large room and a thermometer that ranges
+from 0.0 to 1.0.  Each point in the room has a temperature.  Points that are
+far apart have relatively random temperatures.  Points that are close together
+have close temperatures. The temperature changes smoothly, but randomly as we
+move through the room.
+
+Now, let's place an object into this room along with an artist.  The artist
+measures the temperature at each point on the object and paints that point a
+different colour depending on the temperature.  What do we get?
+{\tt BOZO}\keyindex{BOZO}\index{textures!noisy} texture!
+
+Another function used in texturing is called DNoise.  This is sort of like
+noise except that instead of giving a temperature, it gives a direction.  You
+can think of it as the direction that the wind is blowing at that spot.
+
+Finally, we have a function called turbulence\index{turbulence} which
+uses DNoise to push a particle around a few times -- each time going
+half as far as before. This procedure is roughly illustrated in
+Figure \ref{turb}.
+\begin{figure}[htbp]
+\begin{centering}
+\input{turb}
+\caption{Effect of turbulence}
+\label{turb}
+\end{centering}
+\end{figure}
+This is what we use to create the ``interesting'' marble and wood texture.  We
+locate the point we want to colour (P), then push it around a bit using
+Turbulence to get to a final point (Q) then look up the colour of point Q in
+our ordinary boring wood and marble textures.  That's the colour that's used
+for the point P.
+
+\section{Layered Textures}
+
+\index{textures!layered}
+As of version 2.10, DKBTrace supports layered textures.  Here's how
+that works.  Each object and each shape has a texture that may be
+attached to it.  By default, shapes have no texture, but objects have
+a default texture.  Internally, textures are marked as being constant
+or variable.  A constant texture is one that was
+{\tt DECLARE}'d\keyindex{DECLARE} as a
+texture and is being shared by many shapes and objects.  Variable
+textures are textures that have been declared totally within the
+object or have used a {\tt DECLARE}'d texture and modified it in a
+destructive way.  The idea here is that we want to save on memory by
+sharing textures if possible.
+
+If you have several texture blocks for an object or a shape, they are placed
+into a linked list (First-in, Last-out)\index{textures!parsing of}.
+For example, take the following
+definition:
+\begin{verbatim}
+   OBJECT
+      SPHERE <0 0 0> 1 END_SPHERE
+      TEXTURE WOOD END_TEXTURE
+      TEXTURE MARBLE END_TEXTURE
+   END_OBJECT
+\end{verbatim}
+Here's what happens while parsing this object: Since this is an object
+(as opposed to a shape -- {\tt SPHERE}, {\tt PLANE}, etc.), it starts
+out with the default texture attached, as shown in Figure \ref{parse1}.
+\begin{figure}[htbp]
+\begin{centering}
+\input{parse1}
+\caption{Object parsing, step 1}
+\label{parse1}
+\end{centering}
+\end{figure}
+When the parser sees the first {\tt TEXTURE} block, it looks to see what it has
+linked.  Since the thing that's linked is the default texture (not a copy), it
+discards it and puts in the new texture, as shown in Figure \ref{parse2}.
+\begin{figure}[htbp]
+\begin{centering}
+\input{parse2}
+\caption{Object parsing, step 2}
+\label{parse2}
+\end{centering}
+\end{figure}
+On the next texture, it sees that the texture isn't the default one, so it
+adds the second texture into the linked list, as shown in Figure \ref{parse3}.
+\begin{figure}[htbp]
+\begin{centering}
+\input{parse3}
+\caption{Object parsing, step 3}
+\label{parse3}
+\end{centering}
+\end{figure}
+
+Now for a problem.  If you want to specify the
+{\tt REFRACTION}\index{textures!and {\tt REFRACTION}} of the
+texture, the raytracer must first calculate the surface colour.  It
+does this by marching through the texture list and mixing all the
+colours.  When it's finished, it checks the {\tt ALPHA}\keyindex{ALPHA}
+value of the
+surface colour and decides whether it should trace a refracting ray.
+Where does it get the {\tt REFRACTION} value and the index of
+refraction?  It simply takes the one in the topmost (the last one
+defined) texture.  I don't see any reason to have refraction values
+for any other textures in the layer as it applies to the whole object.
+
+\section{Image Mapping}
+
+\index{mapping, images|see{image mapping}}\index{image mapping}
+One major problem people have when designing data files for DKBTrace is how to
+position images onto the desired surfaces.  With version 2.10, this problem
+becomes slightly easier since the image can be mapped onto the object in the
+object's natural coordinate system.  Thereafter, when the object is
+translated, rotated, or scaled, the image map will follow it.
+
+The image mapping that DKBTrace currently supports is called a
+``parallel projection''\index{projection|see{parallel projection}}%
+\index{parallel projection} mapping.  This technique is simple (that's why
+I implemented it), but it's not perfect.  It works like a slide
+projector casting the desired image onto the scene.  The difference,
+however, is that the image never gets larger as you move further away
+from the slide projector.  In fact, there is no real slide projector.
+Consider the cross section shown in Figure \ref{project}, which
+shows an image with colours A, B, C, D, and E being mapped onto three
+objects.
+\begin{figure}[htbp]
+\begin{centering}
+\input{project}
+\caption{Parallel projection}
+\label{project}
+\end{centering}
+\end{figure}
+The raytracer performs a similar operation
+to map a 2D picture onto a 3D object.  Note that objects cannot shadow each
+other from the image being mapped.  This means that the image will also appear
+on the back of the object as a mirror image.
+
+The mapping takes the original image (regardless of the size) and maps
+it onto the range 0,0 to 1,1 in two of the 3D coordinates.  Which two
+coordinates is specified by the gradient\index{image mapping!gradient}
+vector provided after the
+image.  This vector must contain one positive number, one negative
+number, and one zero.  The positive number identifies the $u$ axis
+(the left-right direction in the image) and the negative number
+represents the $v$ axis (the picture's up-down direction).  Note that
+the magnitude of the number is irrelevant. For example:
+\begin{verbatim}
+    IMAGEMAP <1 -1 0> GIF "filename"
+\end{verbatim}
+will map the GIF\index{GIF} picture onto the square from {\tt <0 0 0>} to
+{\tt <1 1 0>} as shown in Figure \ref{map1}.
+\begin{figure}[htbp]
+\begin{centering}
+\input{map1}
+\caption{Image mapping with vector {\tt <1 -1 0>}}
+\label{map1}
+\end{centering}
+\end{figure}
+If we reversed the vector, the picture would be transposed:
+\begin{verbatim}
+    IMAGEMAP <-1 1 0> GIF "filename"
+\end{verbatim}
+produces the result shown in Figure \ref{map2}.
+\begin{figure}[htbp]
+\begin{centering}
+\input{map2}
+\caption{Image mapping with vector {\tt <-1 1 0>}}
+\label{square-map2}
+\end{centering}
+\end{figure}
+Once the image orientation has been determined, it can be translated, rotated,
+and scaled as desired to map properly onto the object.
+
+\section{Output File Formats}
+
+\index{output!formats}
+People always ask me to describe the output file formats of DKBTrace.  I
+received so many requests for this that I decided to put it into the document.
+The normal ``default'' output format is ``Dump''\index{dump format}
+format.  This is based on QRT format and goes like this, where each
+character is a hex digit:
+
+{\center
+\fbox{\begin{tabular}{lll}
+Header: \\
+& {\tt wwww hhhh} & Width, height (16 bits each, LSB first) \\
+\multicolumn{2}{l}{For each data line:} \\
+ & {\tt llll}         &
+\parbox[t]{2.5in}{line number (16 bits, LSB first, 0 to LINES-1)} \\
+ & {\tt rr rr rr rr rr} \ldots & the red components for that line \\
+ &                    & (8 bits each - 0=dark, 255=bright) \\
+ & {\tt gg gg gg gg gg} \ldots & the green components for that line \\
+ &                    & (8 bits each - 0=dark, 255=bright) \\
+ & {\tt bb bb bb bb bb} \ldots & the blue components for that line \\
+ &                    & (8 bits each - 0=dark, 255=bright) \\
+\end{tabular}}}
+
+\vskip10pt
+Note that this format is slightly different from QRT's.
+
+The\index{raw format} {\tt +fr}\optindex{f} option of the raytracer
+produces ``raw'' files.  These are simply three files with no header
+information and no line number information -- just the raw data.
+
+The\index{Targe format} {\tt +ft} option writes out Targa format.
+Specifically, the fields are:
+
+{\center
+\fbox{\begin{tabular}{lll}
+Header: \\
+ & {\tt 00 00 02 00 00} & Fixed header information for\ldots \\
+ & {\tt 00 00 00} & \hspace{0.2in}\ldots uncompressed type 2 image \\
+ & {\tt 0000} & Horizontal offset always is at 0000 \\
+ & {\tt llll} &
+\parbox[t]{2.5in}{Vertical offset (1st line number, 16 bits, LSB first)} \\
+ & {\tt wwww hhhh} &
+\parbox[t]{2.5in}{width, height of image (16 bits each, LSB first)} \\
+ & {\tt 18 20} & 24 bits per pixel, Top-down raster \\
+\multicolumn{2}{l}{For each data line:} \\
+ & {\tt bb gg rr bb gg rr} \ldots  &
+\parbox[t]{2.5in}{blue, green, and red data, 8 bits for each pixel in
+that line.} \\
+\end{tabular}}}

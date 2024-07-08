@@ -1,0 +1,60 @@
+SHELLGEN.ZIP
+
+        DKBSHELL.C
+            Minimal shell generator from Clifford Pickover.  This was the
+            root of my BASIC version.  Clipped from Ray Tracing News.  See
+            the comments at the top of file.
+        DKBSHELL.BAS
+            Source code.  Modify if you wish, but let me know of improvements,
+            corrections, etc., please.
+        DKBSHELL.EXE
+            Compiled DKBSHELL.BAS.
+        DKBSHELL.INC
+            Include file for use with DKBSHELL.  Sets basic viewer position
+            and a single light source.  You may want to add light sources,
+            sky, etc.
+        DKBSHELL.GIF
+            Sample GIF image from DKB
+        QRTSHELL.GIF
+            Sample GIF image from QRT (another ray tracer).  I did this image
+            with an early version of SHELLGEN.
+
+
+
+
+DKBSHELL is a rather "quick & dirty" interface for DKB for generating scripts
+for a particular type of ray-traced object: the Pickover Seashell.  The shell
+is nothing more than a series of spheres arranged in a logarithmic spiral, but
+designing the spiral without the aid of the computer would be almost impossible.
+The default for the program is 600 spheres, each precisely arranged in X,Y,Z
+and radius.  Try THAT with trial and error!
+
+The DKBSHELL interface will show you APPROXIMATELY what you will get when you
+run the DKB script.
+
+IMPORTANT !! : Make your first runs using a "postage stamp" size image,
+and set the -q command line switch to 0 until you're sure the image is
+going to be centered and cropped properly.  If it is not, adjust the viewer
+position until you have what you want.  (As a rule-of-thumb, the Z factor for
+the viewer seems to work best at about 10 times the largest radius of the
+generated spheres.)
+
+The resulting script file is a test of Biblical proportions for your computer
+and for DKB.  A 320x200 image with no texture or anti-aliasing can still take
+DAYS on my 12mz AT (no math chip), so be forewarned.
+
+Clifford Pickover's beautiful images can be seen in Scientific American,
+July 1989 and in a 3 page feature in OMNI magazine, February 1990.
+
+Pickover seems to use some surface texture and a gradient in his shells that
+I have been unable to duplicate, although I think RIPPLES would suffice for
+the texture.
+
+PLEASE PLEASE PLEASE upload any nice images you produce, as well as any
+improvements, enhancements, variations, etc. to DKBSHELL.  That is the
+ONLY reason I have uploaded this package.  I'm selfish.  I want to see the
+fruits of my labor.
+
+Dan Farmer
+
+

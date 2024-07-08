@@ -1,0 +1,31 @@
+		README for LaTeX version of DKBTrace manual
+		George Ferguson, ferguson@cs.rochester.edu
+			     14 June 1991
+
+You should only need to run LaTeX twice (to get the table of contents
+and such made) if you have all the original distribution files.  The
+default Makefile target does exactly this.  There will some "overfull
+hbox" errors reported, as usual. The index is in the file index.tex
+and all the figures are provided in both "fig" format (as they were
+created) and in LaTeX picture mode format. See below concerning both
+these items. The resulting .dvi file was exactly 250000 bytes on my
+Sparc1.
+
+The Makefile target "clean" will remove all unnecessary files, leaving
+the index and latex figures.
+
+To rebuild the index, you need the "makeindex" program, available from
+Berkeley, I believe. If you do not have makeindex, DO NOT remove the
+file index.tex and DO NOT ask for "make spotless". The Makefile
+provides the target "index", and making the target "all" will reformat
+the manual with a new index.
+
+To change the figures, if you edit them using fig or xfig, you need
+the "fig2dev" program available from Cornell, I believe. If you do not
+have fig2dev, DO NOT remove any of the .tex files listed in the
+Makefile as FIGS, and DO NOT ask for "make spotless". The Makefile
+will automatically rerun fig2dev for any .fig files that are more
+recent than their corresponding .tex file. If your archive extractor
+plays with modification times, you may have to "touch *.tex" or
+"make -t" before running make to prevent it trying to remake the LaTeX
+figures.

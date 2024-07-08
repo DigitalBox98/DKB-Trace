@@ -1,0 +1,142 @@
+\chapter{Displaying the Images}
+
+\index{displaying!after tracing}\index{post-processing}
+When the ray tracer draws the picture on the screen, it doesn't make good
+choices for the colour registers.  Without knowing all the needed colours
+ahead of time, only approximate guesses can be made.  Usually, a post-
+processor is really needed to view the final image correctly.
+
+\section{Amiga Systems}
+
+A post-processor has been provided for the Amiga which scans the picture and
+chooses the best possible colour registers.  It then redisplays the picture.
+For the Amiga, {\tt DumpToIFF}\ttindex{DumpToIFF}\index{IFF format}
+can optionally save this picture in IFF\index{IFF} format. The syntax for the
+{\tt DumpToIFF} post-processor is:
+\begin{verbatim}
+     DumpToIFF filename
+\end{verbatim}
+where the filename is the one given in the {\tt -o}\optindex{o}
+parameter of the ray tracer.  If you didn't specify the {\tt -o}
+option, then use:
+\begin{verbatim}
+     DumpToIFF data.dis
+\end{verbatim}
+If you want to save to an IFF file, then put the name of the IFF file after
+the name of the data file:
+\begin{verbatim}
+     DumpToIFF data.dis picture
+\end{verbatim}
+This will create a file called {\tt picture} which contains the IFF image.
+
+An alternative approach is to buy the commercial package called
+{\em The Art Department}\emindex{The Art Department} from ASDG.
+You can then use the {\tt +fr}\optindex{f} option
+of the raytracer to produce raw files which can be read in to {\em TAD}
+using Sculpt mode.  You can also render using {\tt +fd} to produce a
+dump format file, and use {\tt d2iff}\ttindex{d2iff} to convert this
+to a 24-bit IFF image to load into {\em TAD}.
+
+\section{IBM Systems}
+
+For the IBM, you will probably want to use the {\tt +ft}\optindex{f}
+option (default if {\tt +f} is given) and write the image out in
+Targa-24\index{Targa}
+format.  If you have a Targa or compatible display adapter, you may
+view the picture in the full 16 million colors (that's why they still
+cost the big bucks, but Hercules and Everex, notably, are introducing
+their lower-priced SVGA-compatible 24-bit color display systems for
+the IBM PC and compatibles).  If you don't have one of these, there
+are several different post-processing programs available to convert
+the TARGA true-color image into a more suitable color-mapped image
+(such as {\tt .GIF}).  If you have a VGA/MCGA or SVGA
+adapter capable
+of 320x200 by 256 colors or better, then you may use the +d option
+which will display the image as it generates using only approximate
+screen colors.  The {\tt +d} option will Autodetect the type of
+display adapter card you have and briefly say what kind it found
+before displaying the picture.  If you say {\tt +d{\em x}} where
+{\em x} is one of the predefined IBM (S)VGA display adapter types, no
+hardware test is performed, so if you don't have that type of (S)VGA
+card, {\em don't} use that particular {\tt +d{\em x}} option!
+
+When displaying the image to screen, a HSV conversion method is used (hue,
+saturation, value).  This is a convenient way of translating colors from a
+``true color'' format (16 million) down a ``colour mapped'' format of something
+reasonable (like 256), while still approximating the color as closely as the
+available display hardware permits.  As mentioned previously, the tracer has
+no way of knowing which colors will be finally used in the image, nor can it
+deal properly with all of the colors which will be generated (up to 16M), so
+only 4 shades each of 64 possible hues are mapped into the palette DAC, as
+well as black, white, and two grey levels. The advantage a post-processor has
+in choosing mapped colors is that it can throw away all the unused colors in
+the palette map, and thereby free up some space for making better gradient
+shades of the colors that are actually used.
+
+There are several available image processing programs that can do
+this, a public domain one that is very good is
+{\tt PICLAB}\ttindex{PICLAB}, by the
+Stone Soup Group (the folks who brought you {\tt FRACTINT}).  The
+procedure is to load the TARGA file, then use the {\tt MAKEPAL}
+command to generate a 256 color map which is the histogram-weighted
+average of the most-used colors in the image (You could also
+{\tt PLOAD} a palette file from {\tt FRACTINT} or one you previously had
+saved using {\tt PSAVE}).  You then {\tt MAP} the palette onto the
+image one of two ways:
+\begin{enumerate}
+\item If the {\tt DITHER} variable is {\tt OFF}, a nearest-match
+color-fit is used, which can sometimes produce unwanted ``banding'' of
+colored regions (called false contours).
+\item If the {\tt DITHER} variable is {\tt ON}, then a standard dither
+is used to determine final color values.  This is much better at
+blending the color bands, but can produce noise in reflections and
+make mirrors appear dirty or imperfect.
+\end{enumerate}
+
+Then you would typically {\tt SHOW} the image or {\tt GSAVE} it into
+GIF format.  While the picture is still in the unmapped form (TARGA,
+etc.) you can perform a variety of advanced image processing
+transformations and conversions, so save the {\tt .TGA} or {\tt .RAW}
+files you make (in case you ever get a TARGA card, or give them to a
+friend who has one!).
+
+A commercial product that also does a good job of nearest-match
+color-fit is the {\tt CONVERT} utility of
+{\em AutoDesk Animator}\emindex{Autodesk Animator}.
+However, the dither effect is not as good as that of {\tt PICLAB}.  To
+convert the file in {\em AA}'s {\tt CONVERT}, you {\tt LOAD} TARGA, then in
+the {\tt CONVERT} menu, go to the {\tt SCALE} function and just hit
+{\tt RENDER}.  Click on the {\tt DITHER} (lights up with an asterisk
+when on) if you want it to use it's dithering.  {\tt CONVERT} will
+scale (if asked to) and then do a histogram of total used colors like
+{\tt PICLAB}, but then makes 7 passes on the color map and image to
+determine shading thresholds of each hue.  This nearly eliminates the
+color banding (false contours) in a lot of cases without resorting to
+good 'ol dithering.  By now you must get the feeling {\tt DITHER} is a
+4-letter word.  If you have a low-resolution display, it is.  If you
+have too few colors, however, it can be a saving grace.  At
+resolutions of 640x400 or higher the ``spray paint'' effect of
+dithering and anti-aliasing is much less noticeable, and effects a
+much smoother blending appearance.
+
+A new package to show up in the public domain/shareware circles for the IBM
+is something called {\em Image Alchemy}\emindex{Image Alchemy}, by
+Handmade Software.  It will convert
+Targa\index{Targa} format to GIF\index{GIF} files and do a decent
+job of palette selection and dithering.  To use it simply say
+\begin{verbatim}
+     ALCHEMY file.tga file.gif -g -8 -c256
+\end{verbatim}
+It also features a quick-and-dirty display mode where it uses a
+standardized palette in much the same way DKB's {\tt +d} option does,
+but offers dithering of the image while using the pre-defined palette,
+for a somewhat better quick display.
+
+\section{Unix Systems}
+
+I don't have many details on Unix systems, but I hear that the
+FBM\index{FBM utilities} utilities
+work well to convert the Dump format files into various formats of images.
+For people with access to anonymous FTP over USENET, the FBM utilities are
+available from {\tt nl.cs.emu.edu} (128.2.222.56) in directory
+{\tt /usr/mlm/ftp}.

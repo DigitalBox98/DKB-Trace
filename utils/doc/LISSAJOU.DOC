@@ -1,0 +1,65 @@
+LISSAJOU.BAS & LISSAJOU.EXE
+Copyright Dan Farmer  January 1991
+All rights reserved.
+
+The concept for this program came from the Mathematical Recreations column
+in Scientific American, January 1991, authored by A.K.Dewdney.  The column
+refers to some remarkable ray-traced "creatures" done by Clifford Pickover
+at the Thomas J. Watson IBM Research Center.
+
+After playing around a little with the algorithm mentioned in the article for
+producing the spherical Lissajous figures used by Pickover, I decided to
+write a program to help me make DKB ray-trace script files of the shapes, hence
+this program.
+
+Since I am not very well versed on mathematics, I refer you to the article in
+Scientic American for more about the concepts behind this program.  All I know
+is that you can produce an endless variety of beautiful and complex shapes.
+Even if you don't decide to render the images, the preview feature is neat
+just by itself.  Another great anti-productivity tool!
+
+For those who are interested in the internals, Pickover's basic algorithm is:
+    X = R1*SIN(A*T)*COS(B*T)
+    Y = R1*SIN(A*T)*SIN(B*T)
+    Z = R1*COS(A*T)
+    Where T (time) is an iterative loop, and R,A,and B are parameters.
+    I have added an exponential option for X,Y, and Z.
+
+I have also included a couple of "mutations" of the basic algorithm that
+will produce other strange and wonderful forms.  They look like this:
+
+    X = R1*SIN(A*T)*COS(B*T)
+    Y = R1*COS(A*T)*COS(B*T)
+    Z = R1*SIN(A*T)
+
+
+    X = R1*SIN(A*T)*SIN(B*T)
+    Y = R1*SIN(A*T)*COS(B*T)
+    Z = R1*SIN(A*T)
+
+For those with a QuickBASIC compiler, other perversions are easy to add.
+Put the variation into a sub-routine named ALGO.FOUR (etc.) and edit
+the line   ON ALGO GOSUB ALGO.ONE, ALGO.TWO,ALGO.THREE to include your
+new module.  Also modify the variable MAXALGO that is used for bounds
+checking.
+
+The DKB script is written using SPHERES of a quantity and size that you
+specify.  The color and texture are DECLARED as Atexture and
+Acolor to make it easy to modify the whole composite in a single blow.
+
+Hope you have fun with it... but be warned:  It takes a lot of computing
+power to render 500 or so spheres.  You will probably find that less than
+that amount doesn't make a smooth enough object.
+
+Dan Farmer
+1001 E. 80th St.  Apt #102
+Bloomington MN 55425
+(612) 854-6209
+
+Leave mail on the You Can Call Me Ray BBS (708) 358-5611.
+
+(DKB a ray-tracing program written by David K. Buck with Aaron Collins.)
+
+
+
+

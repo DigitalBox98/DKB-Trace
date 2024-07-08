@@ -1,0 +1,48 @@
+\chapter{Porting to Different Platforms}
+
+\index{porting}
+I've taken great pains to make DKBTrace as portable as possible.  So
+far, it's working out fairly well.  For the most part, the core of the
+raytracer will compile with any decent C compiler.
+
+If you want to port the raytracer to another system, please try to
+modify the core of the raytracer as little as possible.  Each system
+will have its own makefile, config file, and C file.  The config file
+is included by all of the raytrace modules and can be used to perform
+special {\tt \#defines} for that system.  The C file should contain all
+system-specific code.  It must implement the following functions:
+
+{\footnotesize
+\begin{verbatim}
+   void display_init()      /* Open the graphics device and initialize it */
+   void display_close()     /* Close the graphics device                  */
+   void display_finished()  /* Perform any operations required after      */
+                            /* finishing the rendering but before quitting*/
+   void display_plot (x, y, Red, Green, Blue)
+                            /* Display the specified colour at point x,y  */
+\end{verbatim}
+}
+
+\noindent
+In your config file, you may customize the following things:
+
+{\footnotesize
+\begin{verbatim}
+   #define FILE_NAME_LENGTH        /* default 150                        */
+   #define DBL_FORMAT_STRING       /* the string to use to read a double */
+   #define DEFAULT_OUTPUT_FORMAT   /* 'd', 'r' or 't' - default output   */
+                                   /*  file format                       */
+   #define TEST_ABORT              /* the operation to perform while     */
+                                   /* tracing to see if we should abort  */
+                                   /* the trace.                         */
+   #define RED_RAW_FILE_EXTENSION  /* the default extensions for +fr     */
+   #define GREEN_RAW_FILE_EXTENSION
+   #define BLUE_RAW_FILE_EXTENSION
+   #define STARTUP_DKB_TRACE       /* the code to call immediately after */
+                                   /* starting the main program. Useful  */
+                                   /* if you don't have a command-line   */
+                                   /* interface.                         */
+   #define PARAMS(x)               /* "(x)" if you have prototypes, "()" */
+                                   /* otherwise.                         */
+\end{verbatim}
+}

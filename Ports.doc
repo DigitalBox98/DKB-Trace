@@ -1,0 +1,36 @@
+This archive contains some files which are system-specific.  They are:
+
+Amiga:
+   amigacon.h   - config.h for Amiga
+   amiga.c      - system-specific code for Amiga
+   amiga.mak    - makefile for Amiga (Lattice C)
+   withfile     - linker for for BLINK
+
+IBM:
+   ibmconf.h    - config.h for IBM
+   ibm.c        - system-specific code for IBM
+   ibm.mak      - makefile for IBM (Microsoft C)
+   ibmtc.mak    - makefile for IBM (Turbo-C)
+   ibm.lnk      - link file for Microsoft C
+   ibmtc.mak    - make file for Turbo-C
+
+Vax:
+   vaxbuild.com - makefile for VAX
+   vax.c        - system-specific code for VAX
+   vaxconf.h    - config.h for VAX
+
+Mac:
+   mac.c        - Mac-specific code
+   macconf.h    - config.h file for Mac
+
+UNIX:
+   ( These files are fairly generic and can be used as the base for other
+     ports.)
+   unix.c       - system specific routines for UNIX
+   unixconf.h   - header file for UNIX
+   unix.mak     - makefile for UNIX
+
+X Windows:
+   xwin.c       - X Windows code (for UNIX systems)
+                  (include this instead of unix.c)
+   theIcon      - the Icon for X Windows

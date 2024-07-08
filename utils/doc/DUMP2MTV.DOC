@@ -1,0 +1,26 @@
+Dump2MTV								      Dump2MTV
+
+NAME
+	Dump2MTV
+
+SYNOPSIS
+	Dump2MTV <Dumpfile >MTVfile
+
+DESCRIPTION
+	Program converts Dump (or DKBTrace) dumpfiles to MTV ray-tracer (or
+	RayShade) format.
+
+	I made this converter because I wanted to use HamLab to convert my
+	DKBTrace pictures to HAM and I didn't know how to make a HamLab
+	filter. Later I made the Dump2hl filter and this program became quite
+	useless for me but perhaps somebody can use this for some purposes.
+
+
+
+Comments and bug reports to:
+
+	Ville Saari                     vsaari@niksula.hut.fi
+	PL 10
+	00210 Helsinki
+	FINLAND
+

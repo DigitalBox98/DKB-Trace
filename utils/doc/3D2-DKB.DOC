@@ -1,0 +1,26 @@
+
+                           3D2-DKB File Converter
+                               by Steve Anger
+
+  This program converts Atari CAD-3D .3D2 files into DKB files and produces
+a more accurate and complete conversion than possible by using 3D22DKB and
+DKB2DXF.  Light source locations, ambient light levels, and colour information
+are converted properly.
+
+Usage: 3D2-DKB inputfile [outputfile] [options]
+
+inputfile  - Name of CAD-3D file (.3D2) assumed. 
+outputfile - Name of DKB data file (.DAT) assumed.
+
+options:   -d      - Display wireframe preview of object 
+           -vxnnn  - x coordinate of VIEW_POINT location (default +50.0)
+           -vynnn  - y    "       "      "         "     (default +50.0)
+           -vznnn  - z    "       "      "         "     (default -50.0)
+
+           -lxnnn  - x coordinate of LOOK_AT location (default 0.0)
+           -lynnn  - y     "      "     "       "     (default 0.0)
+           -lznnn  - z     "      "     "       "     (default 0.0)
+
+  The object when rendered on DKB should have the same orientation and
+magnification as the wireframe preview, however I havn't tested this
+enough to be sure that it works.

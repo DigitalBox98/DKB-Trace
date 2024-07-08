@@ -1,0 +1,51 @@
+
+	 This program generates a DKB .DAT file containing a DECLAREd
+    gear based on user defined variables.  An outline of the gear is
+    displayed in graphics mode.
+
+	 To quote a buddy on user code modifications "You break it, you own
+    both halves".  If you make any enhancements, please add your notes to
+    this document (and please send a copy back to me via BBS).
+
+    I can be reached at YOU CAN CALL ME RAY RBBS (708) 358-5611.
+
+		    "Its my world and you're welcome to it".
+						Ken Koehler (3-31-91)
+
+
+		    Enclosed are the following files:
+		      GEAR.BAS	      QuickBASIC source
+		      GEAR.EXE	      MS-DOS executable
+		      GEAR.DOC	      This file
+		      GEARSAMP.DAT    Sample gear scene
+
+
+Tooth type (Pointed/Flat)      :    Currently only supports P.
+
+Wheel type (Disk/Spokes)       :    Can be either flat disk with holes carved
+				    out or spokes.
+
+Number of teeth 	       :    What it says.
+
+Gear Radius	    from center:    Radius to midpoint of tooth. This makes
+				    it easy to measure center points of
+				    MESHED gears (why would you only have 1?).
+
+Disk/Spoke Thicknes from center:    Usually thinner here than in hardened
+				    teeth & hub.
+
+Tooth Height		       :    Hieght of tooth itself.
+
+Tooth&Hub Thickness from center:    Usually thicker than its support.
+
+Axel Radius	    from center:    "How big is the hole used to mount it?"
+
+Hole/Spoke Multiple	       :    Number of teeth per hole-carved-out-of-disk
+				    or per spoke. Note: Lower numbers = more
+				    holes/spokes, but fewer frames needed for
+				    rotation.
+
+
+	 Applications notes:  The gear is designed with the origin in
+     its center.  What more can I say?
+

@@ -1,0 +1,112 @@
+\chapter{Converting Data Files from Versions Prior to 2.10}
+
+Unfortunately, version 2.10 changed the format of the data files.
+These changes were mostly to avoid confusion -- especially in the case
+of layered textures.  There were also some changes that were made to
+allow more flexible library objects.  This section details the changes
+in the data file format and why it was necessary to make those
+changes.  I'm sorry that you have to go back through all your old data
+files and edit them all, but I think you'll agree (I hope you'll
+agree) that the changes are for the better.
+
+\begin{enumerate}
+\item The following keywords are no longer accepted outside of a
+{\tt TEXTURE}\keyindex{TEXTURE} block:
+\keyindex{AMBIENT}\keyindex{DIFFUSE}\keyindex{BRILLIANCE}\keyindex{REFLECTION}
+\keyindex{REFRACTION}\keyindex{IOR}\keyindex{PHONG}\keyindex{PHONGSIZE}
+\keyindex{SPECULAR}\keyindex{ROUGHNESS}
+\begin{quote}
+{\tt AMBIENT}, {\tt DIFFUSE}, {\tt BRILLIANCE}, {\tt REFLECTION},
+{\tt REFRACTION}, {\tt IOR}, {\tt PHONG}, {\tt PHONGSIZE},
+{\tt SPECULAR}, {\tt ROUGHNESS}
+\end{quote}
+\begin{description}
+\item[Reason:] For layered textures,\index{textures!layered} it's not
+clear which texture
+these keywords apply to if they're not in a {\tt TEXTURE} block.  I was
+really getting messed up in the implementation trying to locate the
+proper references for these keywords.  It's much cleaner to only allow
+them inside a {\tt TEXTURE} block.
+\end{description}
+
+\item A new texture called {\tt COLOUR}\keyindex{COLOUR} (or
+{\tt COLOR}) has been added.  This texture simply specifies a simple
+colour to use.
+\begin{description}
+\item[Reason:] It's useful to be able to declare a {\tt TEXTURE}
+with the colour embedded inside it.  Besides, I had to provide some
+way of specifying a simple colour after I made the following change.
+\end{description}
+
+\item The keyword {\tt COLOUR} or {\tt COLOR} when used outside of a
+{\tt TEXTURE} block is only used to provide a colour for low-quality
+renderings (ones where the {\tt -q}\optindex{q} value is 5 or below.
+\begin{description}
+\item[Reason:] This is the same reason as for change 1.  For layered
+textures, it wasn't clear what the object or shape colour meant when
+the texture itself contained colour information.  Rather than have a
+convoluted searching scheme (which I tried at first, then abandoned
+due to difficulties in explaining it), I decided to keep it simple.
+If you want a simple colour, put it in a {\tt TEXTURE} block.
+\end{description}
+
+\item When an object or shape is transformed, the textures attached to it are
+transformed as well.
+\begin{description}
+\item[Reason:] Previously, you couldn't {\tt DECLARE}\keyindex{DECLARE}
+objects with
+textures, then create identical copies of them in different places.
+This was especially annoying when you create an object that has an
+image mapped onto it.  As soon as you moved the object, the image was
+left behind.  Unfortunately, this means that the texture
+transformations inside {\tt TEXTURE} blocks in old data files would double
+transform the texture, and must be removed.
+\end{description}
+
+\item The interaction between {\tt ALPHA}\keyindex{ALPHA} colours
+and {\tt REFRACTION}\keyindex{REFRACTION}
+has changed.  Previously, there was no interaction at all.  If you had
+a surface that contained an {\tt ALPHA} colour, you could see through
+the surface.  If the surface had refraction, you could also see
+through.  With the new release, {\tt ALPHA} and {\tt REFRACTION} in
+combination tell you how much light is passed through from the inside
+of the object.
+
+To make things a bit easier, if an object has an {\tt ALPHA} component
+but the {\tt REFRACTION} is 0.0 (or unspecified), the renderer will
+simply transmit the ray through the object without any refractive
+bending.
+\begin{description}
+\item[Reason:] It seemed to make sense.  The code for {\tt ALPHA} was
+doing the same work as the code for {\tt REFRACTION} except for
+actually bending the ray.  Now, you can create objects that are
+partially opaque and partially transparent. Where they are
+transparent, the light passing through the object is bent by the index
+of refraction.  Makes sense, no?
+\end{description}
+
+\item When you use an {\tt IMAGEMAP}\keyindex{IMAGEMAP}
+with the {\tt ONCE}\keyindex{ONCE}\index{image mapping!and {\tt ONCE}}
+option, the colour outside the mapped image is transparent
+{\tt (RED 1.0 GREEN 1.0 BLUE 1.0 ALPHA 1.0)}.
+\begin{description}
+\item[Reason:] This allows you to see the underlying textures.
+\end{description}
+
+\item I've removed {\tt BasicShapes.data} and replaced it with
+{\tt shapes.dat}, {\tt colors.dat}, and {\tt textures.dat}.
+\begin{description}
+\item[Reason:] The old name didn't apply any more (since it contained
+more than just shapes).  Also, I was tired of the IBM people using the
+name {\tt BASICSHA.DAT}.
+\end{description}
+
+\item The textures in {\tt textures.dat} (formerly
+{\tt BasicShapes.data}) were previously scaled to
+{\tt <10.0 10.0 10.0>}.  This scaling has been removed.
+\begin{description}
+\item[Reason:] The factor of 10.0 seemed to be a totally arbitrary
+scale factor that someone used.  I'd like to keep the scaling factors
+up to the users.
+\end{description}
+\end{enumerate}
