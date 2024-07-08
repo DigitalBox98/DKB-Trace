@@ -21,17 +21,16 @@ Launch the command :<br>
 build.sh
 ```
 
+In case of error, you might need to launch before :
+```
+autoreconf -f - i
+```
+
 # How to install 
 
 Launch the command :<br>
 ```
 sudo make install
-```
-
-
-In case of error, you might need to launch before :
-```
-autoreconf -f - i
 ```
 
 # Command line sample 
