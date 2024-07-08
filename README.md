@@ -12,3 +12,7 @@ https://ftp.funet.fi/pub/amiga/fish/501-600/ff513/DKBTrace.lha
 A WEB gui based on Boostrap/PHP has been added in the "web" folder 
 
 
+# How to build 
+
+Launch the command 
+build.sh
