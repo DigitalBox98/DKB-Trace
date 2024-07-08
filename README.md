@@ -21,6 +21,11 @@ Launch the command :<br>
 build.sh
 ```
 
+In case of error, you might need to launch before :
+```
+autoreconf -f - i
+```
+
 # Features
 
 Below are the screenshots of a version for NAS Synology :
