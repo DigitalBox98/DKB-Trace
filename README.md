@@ -9,7 +9,7 @@ DKB-Trace raytracer archive is coming from the Amiga Fish collection : <br>
 https://ftp.funet.fi/pub/amiga/fish/501-600/ff513/DKBTrace.lha
 <br>
 
-# Improvments 
+# Improvements 
 
 A WEB gui based on Boostrap/PHP has been added in the "web" folder 
 <br>
