@@ -23,7 +23,7 @@ build.sh
 
 In case of error, you might need to launch before :
 ```
-autoreconf -f - i
+autoreconf -f -i
 ```
 
 # How to install 
